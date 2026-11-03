@@ -8,23 +8,20 @@ import {
   ArrowRight,
   ArrowUpRight,
   Asterisk,
-  Award,
   BriefcaseBusiness,
   Check,
   Code2,
-  CodeXml,
   House,
   Layers3,
   LockKeyhole,
   Mail,
   Menu,
   MoveUpRight,
-  Sparkles,
-  Trophy,
   UserRound,
   UsersRound,
   X,
 } from "lucide-react";
+import { experiences } from "./experience-data";
 import {
   AnimatePresence,
   motion,
@@ -36,21 +33,21 @@ import {
 const projects = [
   {
     name: "Tokopedia Analytics",
-    type: "Dashboard & Data Analytics",
+    type: "Dashboard & analitik data",
     categories: ["Dashboard"],
     description: "Dashboard analitik ulasan produk Tokopedia 2019 dengan filter kategori, rating, sentimen, dan visualisasi interaktif.",
     year: "2026",
     visual: "tokopedia",
-    label: "Business intelligence",
+    label: "Dashboard analitik",
     stack: ["Python", "Streamlit", "Pandas", "Plotly"],
     github: "https://github.com/Yance30/Big-Data",
     previewTitle: "TOKOPEDIA ANALYTICS",
-    previewHeading: "Product reviews",
-    previewSubtitle: "Dataset 2019 · Interactive analysis",
+    previewHeading: "Ulasan produk",
+    previewSubtitle: "Dataset 2019 · Analisis interaktif",
   },
   {
     name: "Tandur",
-    type: "Website Prototype",
+    type: "Prototipe website",
     categories: ["Website"],
     description: "Prototipe perangkat kerja akad salam untuk KSPPS/BMT; data bersifat ilustratif dan belum memakai backend atau autentikasi nyata.",
     year: "2026",
@@ -62,22 +59,22 @@ const projects = [
     loginPreview: "/login/tandur",
     previewTitle: "TANDUR / AKAD SALAM",
     previewHeading: "Tumbuh bersama",
-    previewSubtitle: "Perangkat kerja untuk KSPPS / BMT",
+    previewSubtitle: "Perangkat kerja KSPPS / BMT",
   },
   {
     name: "JALA Fraud Analytics",
-    type: "Dashboard & Data Analytics",
+    type: "Dashboard & analitik data",
     categories: ["Dashboard"],
     description: "Dashboard analitik berbasis data sintetis untuk membantu memprioritaskan pemeriksaan klaim BPJS melalui fitur graf dan model deteksi.",
     year: "2026",
     visual: "jala",
-    label: "Prototype analytics",
+    label: "Prototipe analitik",
     stack: ["Python", "Streamlit", "NetworkX", "scikit-learn"],
     github: "https://github.com/Yance30/Jala",
     demo: "https://jala-fraud.streamlit.app/",
     previewTitle: "JALA / FRAUD ANALYTICS",
-    previewHeading: "Claim review",
-    previewSubtitle: "Risk signals · Synthetic data",
+    previewHeading: "Tinjauan klaim",
+    previewSubtitle: "Indikasi risiko · Data sintetis",
   },
   {
     name: "ExploreLocal",
@@ -86,12 +83,12 @@ const projects = [
     description: "Aplikasi Android untuk menjelajahi UMKM lokal, melihat promosi dan lokasi, dengan alur autentikasi pengguna.",
     year: "2025",
     visual: "explore",
-    label: "Mobile application",
+    label: "Aplikasi seluler",
     stack: ["Kotlin", "Jetpack Compose", "Supabase", "osmdroid"],
     github: "https://github.com/OraclePanjaitan/ExploreLocal",
     previewTitle: "EXPLORELOCAL / UMKM",
-    previewHeading: "Local businesses",
-    previewSubtitle: "Promos · Maps · Discover",
+    previewHeading: "UMKM lokal",
+    previewSubtitle: "Promosi · Peta · Jelajahi",
   },
   {
     name: "NyaperGO",
@@ -100,12 +97,12 @@ const projects = [
     description: "Aplikasi pemesanan makanan dengan katalog menu, pencarian, keranjang, akun, dan pengelolaan lokasi.",
     year: "2025",
     visual: "nyaper",
-    label: "Food ordering",
+    label: "Pemesanan makanan",
     stack: ["Laravel", "PHP", "Blade", "Tailwind CSS"],
     github: "https://github.com/erlangga-create/projek_pemweb",
     loginPreview: "/login/nyapergo",
-    previewTitle: "NYAPERGO / FOOD ORDERING",
-    previewHeading: "Your favorite bites",
+    previewTitle: "NYAPERGO / PESAN MAKANAN",
+    previewHeading: "Menu favoritmu",
     previewSubtitle: "Menu · Cart · Delivery",
   },
 ];
@@ -115,24 +112,16 @@ type Project = (typeof projects)[number];
 const filters = ["Semua", "Website", "Aplikasi", "Dashboard"] as const;
 const navigation = [
   ["Beranda", "beranda"],
+  ["Proyek", "karya"],
   ["Tentang", "tentang"],
-  ["Karya", "karya"],
-  ["Keahlian", "keahlian"],
   ["Pengalaman", "pengalaman"],
-  ["Sertifikasi", "sertifikasi"],
-  ["Prestasi", "prestasi"],
-  ["Layanan", "layanan"],
   ["Kontak", "kontak"],
-];
+] as const;
 const navigationIcons = [
   House,
-  UserRound,
   BriefcaseBusiness,
-  CodeXml,
+  UserRound,
   UsersRound,
-  Award,
-  Trophy,
-  Layers3,
   Mail,
 ];
 
@@ -149,96 +138,6 @@ const skills = [
   { name: "Node.js", mark: "N", group: "Web", style: "node" },
   { name: "SQL", mark: "SQL", group: "Database", style: "sql" },
   { name: "Figma", mark: "F", group: "Design", style: "figma" },
-];
-
-const leadership = [
-  {
-    role: "Pengembangan Internal PIT",
-    organization: "KBMDSI",
-    period: "2026",
-    initials: "KI",
-  },
-  {
-    role: "Vice Coordinator",
-    organization: "MMD Brawijaya",
-    period: "Periode tidak dicantumkan",
-    initials: "MB",
-  },
-  {
-    role: "Head of Keamanan",
-    organization: "Synergy of Symphony · KBMDSI",
-    period: "2025",
-    initials: "SS",
-  },
-  {
-    role: "Head of Public Relationship",
-    organization: "FORTERY · KBMDSI",
-    period: "2025",
-    initials: "FO",
-  },
-  {
-    role: "Staff Pengembangan Sumber Daya Mahasiswa",
-    organization: "KBMDSI",
-    period: "2025",
-    initials: "SD",
-  },
-];
-
-const services = [
-  {
-    number: "01",
-    icon: CodeXml,
-    title: "Website Development",
-    description: "Website responsif dengan struktur dan pengalaman pengguna yang jelas.",
-  },
-  {
-    number: "02",
-    icon: BriefcaseBusiness,
-    title: "Dashboard Development",
-    description: "Ringkasan informasi dan visualisasi data dalam dashboard.",
-  },
-  {
-    number: "03",
-    icon: Code2,
-    title: "Application Development",
-    description: "Pengembangan aplikasi sesuai kebutuhan dan alur pengguna.",
-  },
-  {
-    number: "04",
-    icon: Sparkles,
-    title: "Data Analysis",
-    description: "Mengolah dan menyajikan data agar lebih mudah dipahami.",
-  },
-  {
-    number: "05",
-    icon: Layers3,
-    title: "UI/UX & Database Design",
-    description: "Merancang antarmuka dan struktur data untuk produk digital.",
-  },
-  {
-    number: "06",
-    icon: UsersRound,
-    title: "IT Consulting",
-    description: "Diskusi awal untuk memetakan ide dan kebutuhan solusi teknologi.",
-  },
-];
-
-const certificationAreas = [
-  "Pemrograman",
-  "Database",
-  "Data Analytics",
-  "Cloud Computing",
-  "Project Management",
-  "Cybersecurity",
-  "Pelatihan & Kursus",
-];
-
-const achievementAreas = [
-  "Kompetisi IT",
-  "Akademik",
-  "Organisasi",
-  "Pencapaian Proyek",
-  "Volunteer",
 ];
 
 const contactEmail = "yansgrouppansi@gmail.com";
@@ -409,6 +308,10 @@ export default function Home() {
   const pageProgress = (activePageIndex + 1) / navigation.length;
 
   const navigateToPage = (page: string) => {
+    if (!navigation.some(([, id]) => id === page)) return;
+    if (window.location.hash !== `#${page}`) {
+      window.history.pushState(null, "", `#${page}`);
+    }
     setActivePage(page);
     setMenuOpen(false);
     window.scrollTo({ top: 0, behavior: shouldReduceMotion ? "auto" : "smooth" });
@@ -437,6 +340,21 @@ export default function Home() {
       behavior: shouldReduceMotion ? "auto" : "smooth",
     });
   }, [activePage, shouldReduceMotion]);
+
+  useEffect(() => {
+    const syncPageFromUrl = () => {
+      const requestedPage = window.location.hash.slice(1);
+      const page = navigation.some(([, id]) => id === requestedPage)
+        ? requestedPage
+        : "beranda";
+      setActivePage(page);
+      setMenuOpen(false);
+    };
+
+    syncPageFromUrl();
+    window.addEventListener("hashchange", syncPageFromUrl);
+    return () => window.removeEventListener("hashchange", syncPageFromUrl);
+  }, []);
 
   return (
     <>
@@ -481,14 +399,14 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.08, duration: 0.3 }}
               >
-                DESIGN <i>×</i> DEVELOPMENT <i>×</i> IDEAS
+                DESAIN <i>×</i> PENGEMBANGAN <i>×</i> GAGASAN
               </motion.span>
               <motion.h2
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.14, duration: 0.38, ease: "easeOut" }}
               >
-                Halo, aku <span>Yance.</span>
+                Halo, saya <span>Yance.</span>
               </motion.h2>
               <motion.div
                 className="intro-progress"
@@ -513,7 +431,7 @@ export default function Home() {
             </div>
 
             <div className="intro-bottomline">
-              <span>CREATIVE DEVELOPER</span>
+              <span>PENGEMBANG DIGITAL</span>
               <span>INDONESIA <i>—</i> 2026</span>
               <span>PILIH HALAMAN <ArrowDownRight size={13} /></span>
             </div>
@@ -525,9 +443,9 @@ export default function Home() {
       <header className="site-header">
         <button className="wordmark" onClick={() => navigateToPage("beranda")} aria-label="Portyance, ke beranda">
           <span className="wordmark-icon">P<span>.</span></span>
-          <span>PORTYANCE<small>INDEPENDENT PORTFOLIO</small></span>
+          <span>PORTYANCE<small>PORTOFOLIO DIGITAL</small></span>
         </button>
-        <button className="header-cta" onClick={() => navigateToPage("kontak")}>Let&apos;s talk <ArrowUpRight size={15} /></button>
+        <button className="header-cta" onClick={() => navigateToPage("kontak")}>Hubungi saya <ArrowUpRight size={15} /></button>
         <button
           className="menu-toggle"
           aria-label={menuOpen ? "Tutup menu" : "Buka menu"}
@@ -571,24 +489,19 @@ export default function Home() {
           transition={{ duration: 0.65, ease: "easeOut" }}
         >
           <div className="eyebrow"><span className="status-dot" /> PORTFOLIO / INDONESIA</div>
-          <h1>Yance Adhy Nata<br />Panjaitan<span className="hero-role">Information Systems Student</span></h1>
+          <h1>Yance Adhy Nata<br />Panjaitan<span className="hero-role">Mahasiswa Sistem Informasi · Pengembangan Web & Dashboard Analitik</span></h1>
           <p className="hero-description">
-            Saya adalah mahasiswa Sistem Informasi yang tertarik pada pengembangan teknologi,
-            analisis data, dan pengelolaan sistem informasi. Saya terus mengembangkan keterampilan
-            melalui proyek dan pembelajaran untuk menciptakan solusi digital yang efektif dan bermanfaat.
+            Saya membangun aplikasi web dan dashboard analitik untuk mengubah kebutuhan bisnis menjadi solusi digital.
           </p>
           <div className="hero-actions">
-            <button className="button button-light" onClick={() => navigateToPage("karya")}>Explore My Projects <ArrowDownRight size={17} /></button>
-            <button className="button button-outline" disabled title="Tambahkan file CV untuk mengaktifkan unduhan">Download CV <ArrowDownRight size={17} /></button>
-            <button className="text-link" onClick={() => navigateToPage("kontak")}>Contact Me <ArrowUpRight size={16} /></button>
+            <button className="button button-light" onClick={() => navigateToPage("karya")}>Lihat proyek <ArrowDownRight size={17} /></button>
+            <button className="text-link" onClick={() => navigateToPage("kontak")}>Hubungi saya <ArrowUpRight size={16} /></button>
           </div>
           <div className="hero-meta">
             <span className="hero-focus-label">FOKUS UTAMA</span>
-            <span>Web Development</span>
-            <span>Application Development</span>
-            <span>Data Analytics</span>
-            <span>Information Systems</span>
-            <span>IT Project Management</span>
+            <span>Pengembangan web</span>
+            <span>Aplikasi</span>
+            <span>Dashboard & analitik data</span>
           </div>
         </motion.div>
 
@@ -620,7 +533,6 @@ export default function Home() {
           <div className="dashboard-stat"><strong>05</strong><span>PROYEK PORTOFOLIO</span></div>
           <div className="dashboard-stat"><strong>12</strong><span>BAHASA & TOOLS</span></div>
           <div className="dashboard-stat"><strong>05</strong><span>PENGALAMAN ORGANISASI</span></div>
-          <div className="dashboard-stat"><strong>0</strong><span>SERTIFIKASI</span></div>
         </div>
       </section>
 
@@ -628,11 +540,11 @@ export default function Home() {
         <Reveal className="section-heading">
           <>
             <div>
-              <span className="eyebrow section-eyebrow">03 — SELECTED WORK</span>
+              <span className="eyebrow section-eyebrow">02 — PROYEK PILIHAN</span>
               <h2>Karya pilihan<span className="muted-period">.</span></h2>
-              <p className="section-lead">Lima proyek pilihan dari dashboard analitik hingga aplikasi dan prototipe web.</p>
+              <p className="section-lead">Lima proyek dari dashboard analitik, aplikasi, hingga prototipe web.</p>
             </div>
-            <span className="work-count">2025 — 2026<br />05 PROJECTS</span>
+            <span className="work-count">2025 — 2026<br />05 PROYEK</span>
           </>
         </Reveal>
         <div className="filter-row" role="group" aria-label="Filter kategori karya">
@@ -678,12 +590,12 @@ export default function Home() {
                       </a>
                       {project.demo && (
                         <a href={project.demo} target="_blank" rel="noopener noreferrer" aria-label={`Lihat demo ${project.name}`}>
-                          Demo <ArrowUpRight size={12} />
+                          Lihat demo <ArrowUpRight size={12} />
                         </a>
                       )}
                       {"loginPreview" in project && project.loginPreview && (
                         <Link href={project.loginPreview} aria-label={`Lihat tampilan login ${project.name}`}>
-                          <LockKeyhole size={13} /> Preview login <ArrowUpRight size={12} />
+                          <LockKeyhole size={13} /> Pratinjau masuk <ArrowUpRight size={12} />
                         </Link>
                       )}
                     </div>
@@ -700,87 +612,7 @@ export default function Home() {
             <p>Belum ada proyek pada kategori <strong>{activeFilter}</strong>.</p>
           </div>
         )}
-        <p className="sample-note"><Asterisk size={14} /> Ringkasan dibuat dari repositori yang ditinjau; demo hanya ditampilkan untuk proyek yang memiliki tautan demo.</p>
-      </section>
-
-      <section className="services-section portfolio-page" id="layanan" hidden={activePage !== "layanan"}>
-        <div className="section-wrap">
-          <Reveal className="section-heading services-heading">
-            <>
-              <div>
-                <span className="eyebrow section-eyebrow">07 — AREA OF INTEREST</span>
-                <h2>Area yang ingin<br /><span className="heading-outline">aku kembangkan.</span></h2>
-              </div>
-              <p className="services-intro">Bidang layanan yang ingin kujelajahi dan kembangkan melalui proyek-proyek digital.</p>
-            </>
-          </Reveal>
-          <div className="service-list">
-            {services.map(({ number, icon: Icon, title, description }, index) => (
-              <motion.article
-                className="service-row"
-                key={number}
-                initial={shouldReduceMotion ? false : { opacity: 0, x: -18 }}
-                whileInView={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.45, delay: index * 0.08, ease: "easeOut" }}
-              >
-                <span className="service-number">{number}</span>
-                <span className="service-icon"><Icon size={20} strokeWidth={1.5} /></span>
-                <div className="service-copy"><h3>{title}</h3><p>{description}</p></div>
-                <ArrowUpRight className="service-arrow" size={20} />
-              </motion.article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="skills-section portfolio-page" id="keahlian" hidden={activePage !== "keahlian"}>
-        <div className="section-wrap">
-          <Reveal className="section-heading skills-heading">
-            <>
-              <div>
-                <span className="eyebrow section-eyebrow">04 — MY TOOLKIT</span>
-                <h2>Teknologi yang<br /><span className="heading-outline">aku gunakan.</span></h2>
-              </div>
-              <p className="skills-intro">Bahasa pemrograman, web dan mobile development, database, serta tools desain.</p>
-            </>
-          </Reveal>
-          <div className="skills-grid">
-            {skills.map((skill, index) => (
-              <motion.article
-                className="skill-card"
-                key={skill.name}
-                initial={shouldReduceMotion ? false : { opacity: 0, y: 16, scale: 0.97 }}
-                whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.4, delay: index % 4 * 0.055, ease: "easeOut" }}
-              >
-                <span className={`skill-mark skill-mark-${skill.style}`} aria-hidden="true">{skill.mark}</span>
-                <span className="skill-name">{skill.name}</span>
-                <span className="skill-group">{skill.group}</span>
-              </motion.article>
-            ))}
-          </div>
-          <div className="skill-focus">
-            <div>
-              <span className="eyebrow section-eyebrow">FOKUS PENGEMBANGAN</span>
-              <div className="skill-pills">
-                <span>Dashboard & Data Analytics</span>
-                <span>Data Visualization</span>
-                <span>Information Systems</span>
-              </div>
-            </div>
-            <div>
-              <span className="eyebrow section-eyebrow">SOFT SKILLS</span>
-              <div className="skill-pills">
-                <span>Komunikasi</span>
-                <span>Kolaborasi</span>
-                <span>Koordinasi tim</span>
-                <span>Tanggung jawab</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <p className="sample-note"><Asterisk size={14} /> Ringkasan disusun dari repositori yang ditinjau. Demo tersedia untuk proyek yang memiliki tautan demo.</p>
       </section>
 
       <section className="leadership-section portfolio-page" id="pengalaman" hidden={activePage !== "pengalaman"}>
@@ -788,34 +620,55 @@ export default function Home() {
           <Reveal className="section-heading leadership-heading">
             <>
               <div>
-                <span className="eyebrow section-eyebrow">04 — LEADERSHIP & ORGANIZATIONS</span>
+                <span className="eyebrow section-eyebrow">04 — PENGALAMAN ORGANISASI</span>
                 <h2>Pengalaman<br /><span className="leadership-heading-muted">berorganisasi.</span></h2>
               </div>
               <p className="leadership-intro">Belajar memimpin, berkolaborasi, dan bertanggung jawab lewat pengalaman organisasi.</p>
             </>
           </Reveal>
           <div className="leadership-list">
-            {leadership.map((item, index) => (
+            {experiences.map((item, index) => (
               <motion.article
-                className="leadership-card"
-                key={`${item.role}-${item.organization}`}
+                className={`leadership-card${item.images ? " leadership-card-featured" : ""}`}
+                key={item.slug}
                 initial={shouldReduceMotion ? false : { opacity: 0, x: -14 }}
                 whileInView={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }}
                 viewport={{ once: true, amount: 0.35 }}
                 transition={{ duration: 0.4, delay: index * 0.055, ease: "easeOut" }}
               >
-                <span className="leadership-index">0{index + 1}</span>
-                <span className="leadership-mark" aria-hidden="true">{item.initials}</span>
-                <div className="leadership-copy">
-                  <h3>{item.role}</h3>
-                  <p>{item.organization}</p>
-                  <span className={`leadership-period${item.period.length > 10 ? " period-long" : ""}`}>{item.period}</span>
-                </div>
-                <ArrowUpRight className="leadership-arrow" size={17} aria-hidden="true" />
+                <Link
+                  className={`leadership-card-link${item.images ? " leadership-card-featured" : ""}`}
+                  href={`/pengalaman/${item.slug}`}
+                  aria-label={`Lihat kegiatan ${item.role}`}
+                >
+                  <span className="leadership-index">0{index + 1}</span>
+                  {item.images ? (
+                    <div className="leadership-photos">
+                      {item.images.map((image) => (
+                        <Image
+                          key={image.src}
+                          className="leadership-photo"
+                          src={image.src}
+                          alt={image.alt}
+                          width={image.width}
+                          height={image.height}
+                          sizes="(max-width: 640px) 72px, 96px"
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="leadership-mark" aria-hidden="true">{item.initials}</span>
+                  )}
+                  <div className="leadership-copy">
+                    <h3>{item.role}</h3>
+                    <p>{item.organization}</p>
+                    {item.period && <span className={`leadership-period${item.period.length > 10 ? " period-long" : ""}`}>{item.period}</span>}
+                  </div>
+                  <ArrowUpRight className="leadership-arrow" size={17} aria-hidden="true" />
+                </Link>
               </motion.article>
             ))}
           </div>
-          <p className="experience-note">Pengalaman yang ditampilkan saat ini berasal dari organisasi yang telah disebutkan. Detail magang, kepanitiaan, kompetisi, proyek tim, dan volunteer dapat ditambahkan jika tersedia.</p>
         </div>
       </section>
 
@@ -826,12 +679,11 @@ export default function Home() {
             <span>YANCE<br />PORTFOLIO</span>
           </div>
           <Reveal className="about-content" delay={0.1}>
-            <span className="eyebrow section-eyebrow">01 — ABOUT ME</span>
-            <h2>Halo, aku Yance.</h2>
+            <span className="eyebrow section-eyebrow">03 — TENTANG SAYA</span>
+            <h2>Halo, saya Yance.</h2>
             <p>
-              Mahasiswa yang tertarik mengembangkan aplikasi dan sistem digital yang
-              bermanfaat. Aku senang belajar melalui eksplorasi teknologi, desain, dan
-              kolaborasi dalam organisasi.
+              Saya tertarik mengembangkan aplikasi dan sistem digital yang bermanfaat.
+              Saya senang belajar melalui eksplorasi teknologi, desain, dan kolaborasi.
             </p>
             <div className="about-points">
               <span><Check size={15} /> Fokus: web dan aplikasi mobile</span>
@@ -848,7 +700,7 @@ export default function Home() {
           </article>
           <article className="about-fact">
             <span className="eyebrow section-eyebrow">FOKUS KARIER</span>
-            <h3>Web & Application Development</h3>
+            <h3>Pengembangan web & aplikasi</h3>
             <p>Mengembangkan kemampuan dalam pembuatan website, aplikasi, database, dan analisis data untuk membangun solusi digital.</p>
           </article>
           <article className="about-fact">
@@ -857,50 +709,49 @@ export default function Home() {
             <p>Terus meningkatkan keterampilan teknis, mengembangkan proyek nyata, dan memperoleh pengalaman untuk berkontribusi dalam dunia teknologi informasi.</p>
           </article>
         </div>
-      </section>
-
-      <section className="records-section portfolio-page" id="sertifikasi" hidden={activePage !== "sertifikasi"}>
-        <div className="section-wrap">
-          <Reveal className="records-heading">
-            <span className="eyebrow section-eyebrow">05 — CERTIFICATIONS</span>
-            <h2>Sertifikasi & pelatihan.</h2>
-            <p>Daftar sertifikat akan menampilkan penyelenggara, tanggal terbit, dan tautan verifikasi.</p>
-          </Reveal>
-          <div className="record-categories">
-            {certificationAreas.map((area) => <span key={area}>{area}</span>)}
+        <section className="about-skills" aria-labelledby="about-skills-title">
+          <div className="about-skills-heading">
+            <span className="eyebrow section-eyebrow">KEAHLIAN</span>
+            <h3 id="about-skills-title">Teknologi yang saya gunakan</h3>
+            <p>Bahasa pemrograman, pengembangan web dan mobile, basis data, serta perangkat desain.</p>
           </div>
-          <div className="record-empty">
-            <Award size={28} strokeWidth={1.3} />
-            <h3>Belum ada sertifikat tercantum</h3>
-            <p>Sertifikat dan kursus yang sudah diselesaikan akan ditampilkan di bagian ini beserta informasi verifikasinya.</p>
+          <div className="skills-grid">
+            {skills.map((skill) => (
+              <article className="skill-card" key={skill.name}>
+                <span className={`skill-mark skill-mark-${skill.style}`} aria-hidden="true">{skill.mark}</span>
+                <span className="skill-name">{skill.name}</span>
+                <span className="skill-group">{skill.group}</span>
+              </article>
+            ))}
           </div>
-        </div>
-      </section>
-
-      <section className="records-section portfolio-page" id="prestasi" hidden={activePage !== "prestasi"}>
-        <div className="section-wrap">
-          <Reveal className="records-heading">
-            <span className="eyebrow section-eyebrow">06 — ACHIEVEMENTS</span>
-            <h2>Pencapaian & prestasi.</h2>
-            <p>Kompetisi, pencapaian akademik, dan kontribusi yang ingin ditonjolkan.</p>
-          </Reveal>
-          <div className="record-categories">
-            {achievementAreas.map((area) => <span key={area}>{area}</span>)}
+          <div className="skill-focus">
+            <div>
+              <span className="eyebrow section-eyebrow">FOKUS PENGEMBANGAN</span>
+              <div className="skill-pills">
+                <span>Dashboard & analitik data</span>
+                <span>Visualisasi data</span>
+                <span>Sistem informasi</span>
+              </div>
+            </div>
+            <div>
+              <span className="eyebrow section-eyebrow">KETERAMPILAN KOLABORASI</span>
+              <div className="skill-pills">
+                <span>Komunikasi</span>
+                <span>Kolaborasi</span>
+                <span>Koordinasi tim</span>
+                <span>Tanggung jawab</span>
+              </div>
+            </div>
           </div>
-          <div className="record-empty">
-            <Trophy size={28} strokeWidth={1.3} />
-            <h3>Belum ada prestasi yang ditambahkan</h3>
-            <p>Prestasi akan ditampilkan setelah detail, tahun, dan bukti pendukung tersedia.</p>
-          </div>
-        </div>
+        </section>
       </section>
 
       <section className="contact-section section-wrap portfolio-page" id="kontak" hidden={activePage !== "kontak"}>
-        <div className="contact-topline"><span className="eyebrow">09 — GET IN TOUCH</span><span>LET&apos;S START A CONVERSATION</span></div>
+        <div className="contact-topline"><span className="eyebrow">05 — KONTAK</span><span>MARI MULAI BERKOLABORASI</span></div>
         <div className="contact-layout">
           <div className="contact-copy">
-            <h2>Yuk, bikin sesuatu<br /><span>yang berarti.</span></h2>
-            <p>Ceritakan sedikit tentang idemu. Formulir ini akan menyiapkan email di aplikasi email perangkatmu.</p>
+            <h2>Mari buat sesuatu<br /><span>yang berarti.</span></h2>
+            <p>Ceritakan tentang kebutuhan atau idemu. Formulir ini akan menyiapkan email di aplikasi email perangkatmu.</p>
             <div className="contact-links">
               <a href={`mailto:${contactEmail}`}><Mail size={15} /> {contactEmail}</a>
               <a href={contactLinks.linkedin} target="_blank" rel="noopener noreferrer"><BriefcaseBusiness size={15} /> LinkedIn <ArrowUpRight size={13} /></a>
