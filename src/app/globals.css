@@ -463,9 +463,9 @@ main { height: 100svh; min-height: 0; overflow: hidden; padding-bottom: 72px; }
   .portrait-image { object-fit: contain; object-position: center center; }
   .scroll-cue { bottom: 24px; }
   .intro-inner { min-height: 72px; gap: 5px; }
-  .dashboard-stat { grid-template-columns: 1fr; justify-items: center; gap: 4px; padding-left: 4px; text-align: center; }
-  .dashboard-stat strong { font-size: 17px; }
-  .dashboard-stat span { font-size: 12px; line-height: 1.35; letter-spacing: .025em; }
+  .dashboard-stat { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; justify-items: center; gap: 2px; padding-left: 4px; text-align: center; }
+  .dashboard-stat strong { font-size: 15px; }
+  .dashboard-stat span { font-size: 10px; line-height: 1.2; letter-spacing: .015em; }
   .intro-inner p { font-size: 8px; }
   .intro-mark { width: 33px; height: 33px; flex: 0 0 auto; }
   .intro-inner .intro-note { font-size: 9px; }
