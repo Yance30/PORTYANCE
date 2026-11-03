@@ -430,7 +430,7 @@ main { height: 100svh; min-height: 0; overflow: hidden; padding-bottom: 72px; }
   .portfolio-page:not([hidden]) { width: 100%; height: calc(100svh - 186px); min-height: 0; margin-inline: 0; padding: 24px 20px 22px; }
   .portfolio-page.section-wrap:not([hidden]) { padding-inline: 20px; }
   .hero.portfolio-page:not([hidden]) { height: calc(100svh - 262px); min-height: 0; padding: 18px 20px 28px; }
-  .intro-strip:not([hidden]) { bottom: 120px; }
+  .intro-strip:not([hidden]) { height: 108px; bottom: 120px; }
   .page-controls { height: 120px; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 3px 8px; padding: 7px 12px; }
   .page-nav-button:nth-child(-n + 3) { grid-column: span 2; }
   .page-nav-button:nth-child(4) { grid-column: 2 / span 2; }
@@ -462,10 +462,11 @@ main { height: 100svh; min-height: 0; overflow: hidden; padding-bottom: 72px; }
   .hero-art { height: auto; aspect-ratio: 1.5; max-width: none; }
   .portrait-image { object-fit: contain; object-position: center center; }
   .scroll-cue { bottom: 24px; }
-  .intro-inner { min-height: 72px; gap: 5px; }
-  .dashboard-stat { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; justify-items: center; gap: 2px; padding-left: 4px; text-align: center; }
-  .dashboard-stat strong { font-size: 15px; }
-  .dashboard-stat span { font-size: 10px; line-height: 1.2; letter-spacing: .015em; }
+  .intro-inner { min-height: 108px; grid-template-columns: minmax(0, 1fr); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 0; padding-block: 4px; }
+  .dashboard-stat { grid-template-columns: 28px minmax(0, 1fr); grid-template-rows: 1fr; justify-items: start; gap: 8px; padding-left: 8px; text-align: left; }
+  .dashboard-stat:first-child { padding-left: 0; }
+  .dashboard-stat strong { font-size: 14px; }
+  .dashboard-stat span { font-size: 10px; line-height: 1.2; letter-spacing: .015em; white-space: nowrap; }
   .intro-inner p { font-size: 8px; }
   .intro-mark { width: 33px; height: 33px; flex: 0 0 auto; }
   .intro-inner .intro-note { font-size: 9px; }
