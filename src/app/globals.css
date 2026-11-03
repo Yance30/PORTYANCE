@@ -556,10 +556,13 @@ main { height: 100svh; min-height: 0; overflow: hidden; padding-bottom: 72px; }
 }
 
   @media (min-width: 641px) and (max-height: 800px) {
-    .hero.portfolio-page:not([hidden]) { padding-top: 18px; padding-bottom: 44px; }
-    .hero-art { height: min(360px, 48svh); }
-    .hero-actions { margin-top: 22px; }
-    .hero-meta { margin-top: 35px; }
+    .hero.portfolio-page:not([hidden]) { padding-top: 14px; padding-bottom: 30px; }
+    .hero h1 { margin: 14px 0 12px; }
+    .hero h1 .hero-role { margin-top: 8px; }
+    .hero-art { height: min(320px, 42svh); overflow: hidden; }
+    .hero-actions { margin-top: 14px; }
+    .hero-meta { margin-top: 14px; }
+    .scroll-cue { display: none; }
     .work-section.portfolio-page { padding-top: 16px; padding-bottom: 16px; }
     .work-section.portfolio-page .section-heading h2 { margin-top: 7px; margin-bottom: 4px; }
     .work-section.portfolio-page .filter-row { margin: 10px 0 6px; }
