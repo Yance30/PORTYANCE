@@ -460,7 +460,8 @@ main { height: 100svh; min-height: 0; overflow: hidden; padding-bottom: 72px; }
   .hero-actions .text-link { min-height: 38px; font-size: 12px; }
   .hero-meta { display: none; }
   .hero-art { height: auto; aspect-ratio: 1.9; max-width: none; overflow: hidden; }
-  .portrait-image { object-fit: contain; object-position: center center; }
+  .portrait-image { object-fit: contain; object-position: center center; -webkit-mask-image: none; mask-image: none; }
+  .portrait-shade { background: none; }
   .portrait-index { display: none; }
   .scroll-cue { display: none; }
   .intro-inner { min-height: 108px; grid-template-columns: minmax(0, 1fr); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 0; padding-block: 4px; }
