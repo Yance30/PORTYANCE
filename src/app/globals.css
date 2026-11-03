@@ -168,7 +168,7 @@ main { height: 100svh; min-height: 0; overflow: hidden; padding-bottom: 72px; }
 .hero-meta > span:not(.hero-focus-label) { padding: 6px 8px; border: 1px solid #3c3c39; background: rgba(245,245,243,.025); }
 .hero-meta .hero-focus-label { flex-basis: 100%; margin-bottom: 2px; color: #777773; font-size: 12px; letter-spacing: .14em; }
 .hero-art { height: 430px; max-width: none; width: 100%; margin-left: auto; position: relative; overflow: visible; background: transparent; border: 0; border-radius: 0; }
-.portrait-image { object-fit: cover; object-position: 62% 14%; border-radius: 0; filter: saturate(.82) contrast(1.04); -webkit-mask-image: radial-gradient(ellipse 83% 90% at 58% 46%, #000 48%, rgba(0,0,0,.88) 69%, transparent 100%); mask-image: radial-gradient(ellipse 83% 90% at 58% 46%, #000 48%, rgba(0,0,0,.88) 69%, transparent 100%); animation: portrait-breathe 14s ease-in-out infinite alternate; transform-origin: 62% 40%; }
+.portrait-image { object-fit: cover; object-position: 62% 14%; border-radius: 0; filter: saturate(.82) contrast(1.04); -webkit-mask-image: radial-gradient(ellipse 83% 90% at 58% 46%, #000 48%, rgba(0,0,0,.88) 69%, transparent 100%); mask-image: radial-gradient(ellipse 83% 90% at 58% 46%, #000 48%, rgba(0,0,0,.88) 69%, transparent 100%); user-select: none; -webkit-user-drag: none; }
 .portrait-shade { position: absolute; inset: 0; background: radial-gradient(ellipse 82% 90% at 58% 45%, transparent 40%, rgba(16,16,16,.22) 70%, rgba(16,16,16,.86) 100%); pointer-events: none; }
 .portrait-glint { position: absolute; width: 48%; aspect-ratio: 1; right: -18%; top: -18%; border-radius: 50%; background: radial-gradient(circle, rgba(225,225,218,.2), rgba(225,225,218,0) 70%); filter: blur(4px); pointer-events: none; animation: glint-drift 9s ease-in-out infinite alternate; }
 .portrait-index, .portrait-caption { position: absolute; display: flex; align-items: center; gap: 7px; color: #e3e3df; font-size: 12px; letter-spacing: .14em; }
@@ -627,11 +627,6 @@ main { height: 100svh; min-height: 0; overflow: hidden; padding-bottom: 72px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-}
-
-@keyframes portrait-breathe {
-  from { transform: scale(1); }
-  to { transform: scale(1.045); }
 }
 
 @keyframes glint-drift {

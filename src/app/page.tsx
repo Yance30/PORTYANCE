@@ -519,6 +519,7 @@ export default function Home() {
             fill
             priority
             sizes="(max-width: 640px) 100vw, (max-width: 900px) 45vw, 460px"
+            draggable={false}
           />
           <div className="portrait-shade" />
           <div className="portrait-glint" aria-hidden="true" />
