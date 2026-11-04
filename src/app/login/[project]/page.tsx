@@ -14,11 +14,11 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: LoginPreviewPageProps): Promise<Metadata> {
   const { project } = await params;
   if (!isLoginPreviewSlug(project)) {
-    return { title: "Login Preview — Portyance" };
+    return { title: "Login Preview | Portyance" };
   }
 
   return {
-    title: `${loginPreviewData[project].name} Login Preview — Portyance`,
+    title: `${loginPreviewData[project].name} Login Preview | Portyance`,
     description: `Tampilan preview login ${loginPreviewData[project].name}. Mockup visual, belum terhubung ke autentikasi.`,
   };
 }

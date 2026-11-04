@@ -432,7 +432,7 @@ export default function Home() {
 
             <div className="intro-bottomline">
               <span>PENGEMBANG DIGITAL</span>
-              <span>INDONESIA <i>—</i> 2026</span>
+              <span>INDONESIA · 2026</span>
               <span>PILIH HALAMAN <ArrowDownRight size={13} /></span>
             </div>
           </motion.div>
@@ -541,11 +541,11 @@ export default function Home() {
         <Reveal className="section-heading">
           <>
             <div>
-              <span className="eyebrow section-eyebrow">02 — PROYEK PILIHAN</span>
+              <span className="eyebrow section-eyebrow">02 / PROYEK PILIHAN</span>
               <h2>Karya pilihan<span className="muted-period">.</span></h2>
               <p className="section-lead">Lima proyek dari dashboard analitik, aplikasi, hingga prototipe web.</p>
             </div>
-            <span className="work-count">2025 — 2026<br />05 PROYEK</span>
+            <span className="work-count">2025 sampai 2026<br />05 PROYEK</span>
           </>
         </Reveal>
         <div className="filter-row" role="group" aria-label="Filter kategori karya">
@@ -621,7 +621,7 @@ export default function Home() {
           <Reveal className="section-heading leadership-heading">
             <>
               <div>
-                <span className="eyebrow section-eyebrow">04 — PENGALAMAN ORGANISASI</span>
+                <span className="eyebrow section-eyebrow">04 / PENGALAMAN ORGANISASI</span>
                 <h2>Pengalaman<br /><span className="leadership-heading-muted">berorganisasi.</span></h2>
               </div>
               <p className="leadership-intro">Belajar memimpin, berkolaborasi, dan bertanggung jawab lewat pengalaman organisasi.</p>
@@ -680,7 +680,7 @@ export default function Home() {
             <span>YANCE<br />PORTFOLIO</span>
           </div>
           <Reveal className="about-content" delay={0.1}>
-            <span className="eyebrow section-eyebrow">03 — TENTANG SAYA</span>
+            <span className="eyebrow section-eyebrow">03 / TENTANG SAYA</span>
             <h2>Halo, saya Yance.</h2>
             <p>
               Saya tertarik mengembangkan aplikasi dan sistem digital yang bermanfaat.
@@ -748,7 +748,7 @@ export default function Home() {
       </section>
 
       <section className="contact-section section-wrap portfolio-page" id="kontak" hidden={activePage !== "kontak"}>
-        <div className="contact-topline"><span className="eyebrow">05 — KONTAK</span><span>MARI MULAI BERKOLABORASI</span></div>
+        <div className="contact-topline"><span className="eyebrow">05 / KONTAK</span><span>MARI MULAI BERKOLABORASI</span></div>
         <div className="contact-layout">
           <div className="contact-copy">
             <h2>Mari buat sesuatu<br /><span>yang berarti.</span></h2>

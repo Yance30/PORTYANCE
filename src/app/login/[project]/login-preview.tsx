@@ -59,7 +59,7 @@ export default function LoginPreview({ project }: { project: LoginPreviewSlug })
           <div className="login-preview-form-wrap">
             <div className="login-preview-notice">
               <LockKeyhole size={14} />
-              <span>Kolom preview bisa diedit langsung — autentikasi belum aktif</span>
+              <span>Kolom preview bisa diedit langsung. Autentikasi belum aktif.</span>
             </div>
             <span className="login-preview-form-eyebrow">{content.name} / LOGIN</span>
             <h2 id="login-preview-title">{content.formTitle}</h2>

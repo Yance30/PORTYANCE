@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: ExperiencePageProps): Promise
   if (!experience) notFound();
 
   return {
-    title: `${experience.role} — Pengalaman Organisasi | Portyance`,
+    title: `${experience.role} | Pengalaman Organisasi | Portyance`,
     description: experience.description,
   };
 }
