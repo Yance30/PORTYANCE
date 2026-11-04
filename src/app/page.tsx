@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -19,6 +19,8 @@ import {
   MoveUpRight,
   UserRound,
   UsersRound,
+  Volume2,
+  VolumeX,
   X,
 } from "lucide-react";
 import { experiences } from "./experience-data";
@@ -26,8 +28,9 @@ import {
   AnimatePresence,
   motion,
   useMotionValue,
-  useReducedMotion,
   useSpring,
+  useTransform,
+  type MotionValue,
 } from "motion/react";
 
 const projects = [
@@ -146,6 +149,41 @@ const contactLinks = {
   linkedin: "https://www.linkedin.com/in/yanceadhynatapanjaitan/",
 };
 
+const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
+const getReducedMotionSnapshot = () => window.matchMedia(reducedMotionQuery).matches;
+const getServerReducedMotionSnapshot = () => false;
+
+function subscribeToReducedMotion(callback: () => void) {
+  const mediaQuery = window.matchMedia(reducedMotionQuery);
+  mediaQuery.addEventListener("change", callback);
+  return () => mediaQuery.removeEventListener("change", callback);
+}
+
+function useReducedMotionPreference() {
+  return useSyncExternalStore(
+    subscribeToReducedMotion,
+    getReducedMotionSnapshot,
+    getServerReducedMotionSnapshot,
+  );
+}
+
+function playUiSound(context: AudioContext) {
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  const now = context.currentTime;
+
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(560, now);
+  oscillator.frequency.exponentialRampToValueAtTime(760, now + 0.08);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.035, now + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+  oscillator.connect(gain);
+  gain.connect(context.destination);
+  oscillator.start(now);
+  oscillator.stop(now + 0.15);
+}
+
 function ProjectVisual({ project }: { project: Project }) {
   return (
     <div className={`project-visual visual-${project.visual}`} aria-hidden="true">
@@ -173,7 +211,7 @@ function Reveal({
   className?: string;
   delay?: number;
 }) {
-  const shouldReduceMotion = useReducedMotion();
+  const shouldReduceMotion = useReducedMotionPreference();
 
   return (
     <motion.div
@@ -193,9 +231,9 @@ function CursorEffects({
   pageProgress,
 }: {
   introVisible: boolean;
-  pageProgress: number;
+  pageProgress: MotionValue<number>;
 }) {
-  const shouldReduceMotion = useReducedMotion();
+  const shouldReduceMotion = useReducedMotionPreference();
   const pointerX = useMotionValue(-100);
   const pointerY = useMotionValue(-100);
   const smoothX = useSpring(pointerX, { stiffness: 420, damping: 36, mass: 0.25 });
@@ -294,11 +332,22 @@ function CursorEffects({
   );
 }
 
-function HeroArtwork({ shouldReduceMotion }: { shouldReduceMotion: boolean | null }) {
+function HeroArtwork({
+  shouldReduceMotion,
+  scrollOffset,
+}: {
+  shouldReduceMotion: boolean | null;
+  scrollOffset: MotionValue<number>;
+}) {
   const pointerX = useMotionValue(0);
   const pointerY = useMotionValue(0);
   const rotateX = useSpring(pointerX, { stiffness: 160, damping: 22, mass: 0.5 });
   const rotateY = useSpring(pointerY, { stiffness: 160, damping: 22, mass: 0.5 });
+  const portraitX = useTransform(rotateY, [-7, 7], [-12, 12]);
+  const portraitY = useTransform(rotateX, [-6, 6], [10, -10]);
+  const cardX = useTransform(rotateY, [-7, 7], [18, -18]);
+  const cardY = useTransform(rotateX, [-6, 6], [-12, 12]);
+  const scrollY = useTransform(scrollOffset, [0, 100], [0, -26]);
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (shouldReduceMotion || event.pointerType !== "mouse") return;
@@ -331,27 +380,40 @@ function HeroArtwork({ shouldReduceMotion }: { shouldReduceMotion: boolean | nul
     >
       <div className="hero-art-orbit hero-art-orbit-back" aria-hidden="true" />
       <div className="hero-art-orbit hero-art-orbit-front" aria-hidden="true" />
-      <Image
-        className="portrait-image"
-        src="/yance-portrait.png"
-        alt="Portrait pemilik portfolio"
-        fill
-        priority
-        sizes="(max-width: 640px) 100vw, (max-width: 900px) 45vw, 460px"
-        draggable={false}
-      />
+      <motion.div
+        className="hero-portrait-layer"
+        style={shouldReduceMotion ? undefined : { x: portraitX, y: portraitY }}
+      >
+        <Image
+          className="portrait-image"
+          src="/yance-portrait.png"
+          alt="Portrait pemilik portfolio"
+          fill
+          loading="lazy"
+          sizes="(max-width: 640px) 100vw, (max-width: 900px) 45vw, 460px"
+          draggable={false}
+        />
+      </motion.div>
       <div className="portrait-shade" />
       <div className="portrait-glint" aria-hidden="true" />
-      <div className="hero-float-card hero-float-code" aria-hidden="true">
+      <motion.div
+        className="hero-float-card hero-float-code"
+        style={shouldReduceMotion ? undefined : { x: cardX, y: cardY }}
+        aria-hidden="true"
+      >
         <span><i /> LIVE PREVIEW</span>
         <b>&lt;build /&gt;</b>
         <small>Ide jadi pengalaman digital</small>
-      </div>
-      <div className="hero-float-card hero-float-stack" aria-hidden="true">
+      </motion.div>
+      <motion.div
+        className="hero-float-card hero-float-stack"
+        style={shouldReduceMotion ? undefined : { x: cardX, y: scrollY }}
+        aria-hidden="true"
+      >
         <span className="hero-stack-marks"><i>JS</i><i>Py</i><i>UI</i></span>
         <b>Digital maker</b>
         <small>Web · Data · Mobile</small>
-      </div>
+      </motion.div>
       <span className="portrait-index"><Asterisk size={13} /> PORTFOLIO / 2026</span>
       <span className="portrait-caption">DESIGN <i>×</i> DEVELOPMENT</span>
     </motion.div>
@@ -364,21 +426,58 @@ export default function Home() {
   const [activePage, setActivePage] = useState("beranda");
   const [activeFilter, setActiveFilter] = useState<(typeof filters)[number]>("Semua");
   const [menuOpen, setMenuOpen] = useState(false);
-  const shouldReduceMotion = useReducedMotion();
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const shouldReduceMotion = useReducedMotionPreference();
+  const pageProgress = useMotionValue(0);
+  const heroScrollOffset = useMotionValue(0);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const introPointerX = useMotionValue(0);
+  const introPointerY = useMotionValue(0);
+  const introRotateX = useSpring(introPointerY, { stiffness: 90, damping: 24 });
+  const introRotateY = useSpring(introPointerX, { stiffness: 90, damping: 24 });
+  const introGridX = useTransform(introRotateY, [-8, 8], [-15, 15]);
+  const introGridY = useTransform(introRotateX, [-6, 6], [-12, 12]);
   const activePageIndex = navigation.findIndex(([, page]) => page === activePage);
   const visibleProjects = projects.filter(
     (project) => activeFilter === "Semua" || project.categories.includes(activeFilter),
   );
-  const pageProgress = (activePageIndex + 1) / navigation.length;
-
   const navigateToPage = (page: string) => {
     if (!navigation.some(([, id]) => id === page)) return;
+    if (soundEnabled && audioContextRef.current) playUiSound(audioContextRef.current);
     if (window.location.hash !== `#${page}`) {
       window.history.pushState(null, "", `#${page}`);
     }
     setActivePage(page);
     setMenuOpen(false);
+    heroScrollOffset.set(0);
     window.scrollTo({ top: 0, behavior: shouldReduceMotion ? "auto" : "smooth" });
+  };
+
+  const toggleSound = () => {
+    if (soundEnabled) {
+      setSoundEnabled(false);
+      return;
+    }
+
+    const context = audioContextRef.current ?? new AudioContext();
+    audioContextRef.current = context;
+    if (context.state === "suspended") void context.resume();
+    setSoundEnabled(true);
+    playUiSound(context);
+  };
+
+  const handleIntroPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (shouldReduceMotion || event.pointerType !== "mouse") return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width;
+    const y = (event.clientY - bounds.top) / bounds.height;
+    introPointerX.set((x - 0.5) * 8);
+    introPointerY.set((0.5 - y) * 6);
+  };
+
+  const resetIntroPointer = () => {
+    introPointerX.set(0);
+    introPointerY.set(0);
   };
 
   const dismissIntro = useCallback(() => {
@@ -392,11 +491,26 @@ export default function Home() {
     if (!introVisible) return;
 
     introSkipRef.current?.focus();
-    const introDuration = shouldReduceMotion ? 200 : 700;
+    const introDuration = shouldReduceMotion ? 200 : 4800;
     const timeoutId = window.setTimeout(dismissIntro, introDuration);
 
     return () => window.clearTimeout(timeoutId);
   }, [dismissIntro, introVisible, shouldReduceMotion]);
+
+  useEffect(() => {
+    const page = document.getElementById(activePage);
+    if (!page) return;
+
+    const updateProgress = () => {
+      const maxScroll = page.scrollHeight - page.clientHeight;
+      const scrollFraction = maxScroll > 0 ? page.scrollTop / maxScroll : 0;
+      pageProgress.set((activePageIndex + scrollFraction) / navigation.length);
+    };
+
+    page.addEventListener("scroll", updateProgress, { passive: true });
+    updateProgress();
+    return () => page.removeEventListener("scroll", updateProgress);
+  }, [activePage, activePageIndex, pageProgress]);
 
   useEffect(() => {
     document.getElementById(activePage)?.scrollTo({
@@ -432,11 +546,13 @@ export default function Home() {
             aria-label="Intro Portyance"
             aria-hidden={!introVisible}
             style={{ pointerEvents: introVisible ? "auto" : "none" }}
+            onPointerMove={handleIntroPointerMove}
+            onPointerLeave={resetIntroPointer}
             initial={{ y: 0 }}
             exit={shouldReduceMotion ? { opacity: 0 } : { y: "-100%" }}
             transition={{ duration: shouldReduceMotion ? 0.15 : 0.4, ease: [0.76, 0, 0.24, 1] }}
           >
-            <div className="intro-grid" aria-hidden="true" />
+            <motion.div className="intro-grid" style={{ x: introGridX, y: introGridY }} aria-hidden="true" />
             <div className="intro-topline">
               <span>PORTYANCE <i>®</i></span>
               <span>INDEPENDENT DIGITAL PORTFOLIO</span>
@@ -452,6 +568,11 @@ export default function Home() {
                 animate={{ opacity: 1, scale: 1, rotate: 0 }}
                 whileHover={shouldReduceMotion ? undefined : { rotateX: 12, rotateY: -14, z: 24 }}
                 transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                style={shouldReduceMotion ? undefined : {
+                  rotateX: introRotateX,
+                  rotateY: introRotateY,
+                  transformPerspective: 1000,
+                }}
               >
                 <span className="intro-orbit intro-orbit-outer" />
                 <span className="intro-orbit intro-orbit-inner" />
@@ -469,30 +590,47 @@ export default function Home() {
               <motion.h2
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.14, duration: 0.38, ease: "easeOut" }}
+                transition={{ delay: 0.5, duration: 0.55, ease: "easeOut" }}
               >
                 Halo, saya <span>Yance.</span>
               </motion.h2>
+              <motion.p
+                className="intro-description"
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1, duration: 0.55, ease: "easeOut" }}
+              >
+                Selamat datang di ruang digital saya. Jelajahi karya, pengalaman, dan hal yang saya bangun.
+              </motion.p>
               <motion.div
                 className="intro-progress"
                 initial={{ opacity: 0, scaleX: 0.65 }}
                 animate={{ opacity: 1, scaleX: 1 }}
-                transition={{ delay: 0.14, duration: 0.25 }}
+                transition={{ delay: 0.75, duration: 0.4 }}
               >
                 <motion.span
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
-                  transition={{ duration: shouldReduceMotion ? 0.1 : 0.48, delay: 0.18, ease: "easeInOut" }}
+                  transition={{ duration: shouldReduceMotion ? 0.1 : 3.7, delay: 0.9, ease: "easeInOut" }}
                 />
               </motion.div>
               <motion.span
                 className="intro-loading"
                 initial={shouldReduceMotion ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.25 }}
+                transition={{ delay: 0.8, duration: 0.3 }}
               >
-                MENYIAPKAN PORTOFOLIO
+                MENYIAPKAN PENGALAMAN
               </motion.span>
+              <motion.button
+                className="intro-enter"
+                onClick={dismissIntro}
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.7, duration: 0.4 }}
+              >
+                MASUK KE PORTOFOLIO <ArrowUpRight size={14} />
+              </motion.button>
             </div>
 
             <div className="intro-bottomline">
@@ -541,6 +679,18 @@ export default function Home() {
           Hubungi saya <ArrowUpRight size={15} />
         </motion.button>
         <motion.button
+          className={`sound-toggle${soundEnabled ? " is-enabled" : ""}`}
+          type="button"
+          aria-label={soundEnabled ? "Matikan efek suara" : "Nyalakan efek suara"}
+          aria-pressed={soundEnabled}
+          title={soundEnabled ? "Efek suara aktif" : "Efek suara mati"}
+          onClick={toggleSound}
+          whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
+        >
+          {soundEnabled ? <Volume2 size={17} /> : <VolumeX size={17} />}
+          <span>SFX</span>
+        </motion.button>
+        <motion.button
           className="menu-toggle"
           aria-label={menuOpen ? "Tutup menu" : "Buka menu"}
           aria-expanded={menuOpen}
@@ -587,7 +737,12 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      <section className="hero section-wrap portfolio-page" id="beranda" hidden={activePage !== "beranda"}>
+      <section
+        className="hero section-wrap portfolio-page"
+        id="beranda"
+        hidden={activePage !== "beranda"}
+        onScroll={(event) => heroScrollOffset.set(Math.min(event.currentTarget.scrollTop, 100))}
+      >
         <motion.div
           className="hero-copy"
           initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
@@ -611,7 +766,7 @@ export default function Home() {
           </div>
         </motion.div>
 
-        <HeroArtwork shouldReduceMotion={shouldReduceMotion} />
+        <HeroArtwork shouldReduceMotion={shouldReduceMotion} scrollOffset={heroScrollOffset} />
         <button className="scroll-cue" onClick={() => navigateToPage("karya")}><ArrowDownRight size={14} /> LIHAT KARYA</button>
       </section>
 
@@ -659,11 +814,17 @@ export default function Home() {
                 layout
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                whileHover={shouldReduceMotion ? undefined : { y: -5, rotate: index % 2 === 0 ? -0.35 : 0.35 }}
+                whileHover={shouldReduceMotion ? undefined : {
+                  y: -7,
+                  rotateX: index % 2 === 0 ? 3 : -3,
+                  rotateY: index % 2 === 0 ? -4 : 4,
+                  z: 16,
+                }}
                 whileTap={shouldReduceMotion ? undefined : { scale: 0.985 }}
                 viewport={{ once: true, amount: 0.15 }}
                 exit={shouldReduceMotion ? undefined : { opacity: 0, y: 8 }}
-                transition={{ duration: 0.25, delay: index * 0.04 }}
+                transition={{ type: "spring", stiffness: 260, damping: 24, delay: index * 0.04 }}
+                style={shouldReduceMotion ? undefined : { transformPerspective: 1100 }}
               >
                 <div className="project-preview">
                   <ProjectVisual project={project} />
