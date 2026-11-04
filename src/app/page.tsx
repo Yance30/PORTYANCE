@@ -32,6 +32,7 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
+import * as THREE from "three";
 
 const projects = [
   {
@@ -341,149 +342,305 @@ function CursorEffects({
   );
 }
 
-function HeroArtwork({
+const scenePalettes: Record<string, number> = {
+  beranda: 0xe4ad85,
+  karya: 0x9ac4b2,
+  tentang: 0xc3a88d,
+  pengalaman: 0xe3aa73,
+  kontak: 0xabb3e7,
+};
+
+function PortfolioWorld({
+  activePage,
   shouldReduceMotion,
-  scrollOffset,
 }: {
+  activePage: string;
   shouldReduceMotion: boolean | null;
-  scrollOffset: MotionValue<number>;
 }) {
-  const worldCanvasRef = useRef<HTMLCanvasElement>(null);
-  const pointerX = useMotionValue(0);
-  const pointerY = useMotionValue(0);
-  const rotateX = useSpring(pointerX, { stiffness: 160, damping: 22, mass: 0.5 });
-  const rotateY = useSpring(pointerY, { stiffness: 160, damping: 22, mass: 0.5 });
-  const portraitX = useTransform(rotateY, [-7, 7], [-12, 12]);
-  const portraitY = useTransform(rotateX, [-6, 6], [10, -10]);
-  const cardX = useTransform(rotateY, [-7, 7], [18, -18]);
-  const cardY = useTransform(rotateX, [-6, 6], [-12, 12]);
-  const scrollY = useTransform(scrollOffset, [0, 100], [0, -26]);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const paletteTarget = useRef(new THREE.Color(scenePalettes.beranda));
+  const renderScene = useRef<(() => void) | null>(null);
 
   useEffect(() => {
-    const canvas = worldCanvasRef.current;
-    const context = canvas?.getContext("2d");
-    if (!canvas || !context) return;
+    paletteTarget.current.setHex(scenePalettes[activePage] ?? scenePalettes.beranda);
+    renderScene.current?.();
+  }, [activePage]);
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const mobile = window.matchMedia("(max-width: 640px)").matches;
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        canvas,
+        alpha: true,
+        antialias: !mobile,
+        powerPreference: "low-power",
+      });
+    } catch (error) {
+      console.error("Unable to initialize the portfolio's 3D scene.", error);
+      return;
+    }
+
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobile ? 1 : 1.35));
+    renderer.setClearColor(0x000000, 0);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 80);
+    camera.position.set(0, 0, 10);
+    camera.lookAt(0, 0, -2);
+    const ambientLight = new THREE.AmbientLight(0xffe6d3, 0.72);
+    scene.add(ambientLight);
+
+    const portalLight = new THREE.PointLight(scenePalettes.beranda, 24, 10, 2);
+    scene.add(portalLight);
+
+    const portal = new THREE.Group();
+    scene.add(portal);
+    const portalRings: THREE.Mesh[] = [];
+    const ringMaterial = new THREE.MeshBasicMaterial({
+      color: scenePalettes.beranda,
+      transparent: true,
+      opacity: 0.58,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+
+    const addPortalRing = (
+      radius: number,
+      tube: number,
+      arc: number,
+      startAngle: number,
+      opacity: number,
+    ) => {
+      const material = ringMaterial.clone();
+      material.opacity = opacity;
+      const mesh = new THREE.Mesh(
+        new THREE.TorusGeometry(radius, tube, 8, 160, arc),
+        material,
+      );
+      mesh.rotation.set(Math.PI * 0.12, Math.PI * 0.1, startAngle);
+      portal.add(mesh);
+      portalRings.push(mesh);
+      return mesh;
+    };
+
+    addPortalRing(1.78, 0.018, Math.PI * 2, 0, 0.48);
+    addPortalRing(1.92, 0.009, Math.PI * 2, 0.7, 0.3);
+    const arcA = addPortalRing(2.08, 0.026, Math.PI * 0.34, 0.4, 0.82);
+    const arcB = addPortalRing(2.08, 0.021, Math.PI * 0.28, 3.1, 0.7);
+    const arcC = addPortalRing(1.55, 0.012, Math.PI * 0.22, 4.8, 0.68);
+
+    const portalMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uColor: { value: new THREE.Color(scenePalettes.beranda) },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec2 vUv;
+        uniform float uTime;
+        uniform vec3 uColor;
+        void main() {
+          vec2 centered = vUv - 0.5;
+          float radius = length(centered) * 2.0;
+          float angle = atan(centered.y, centered.x);
+          float ring = smoothstep(0.58, 0.7, radius) * (1.0 - smoothstep(0.84, 0.96, radius));
+          float current = 0.5 + 0.5 * sin(angle * 13.0 - uTime * 1.7 + radius * 20.0);
+          float filaments = pow(max(0.0, sin(angle * 23.0 + uTime * 2.4 - radius * 15.0)), 12.0);
+          float center = (1.0 - smoothstep(0.08, 0.75, radius)) * 0.12;
+          float alpha = ring * (0.18 + current * 0.26 + filaments * 0.42) + center;
+          gl_FragColor = vec4(uColor * (0.55 + current * 0.7), alpha);
+        }
+      `,
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const portalSurface = new THREE.Mesh(new THREE.CircleGeometry(1.68, 96), portalMaterial);
+    portalSurface.position.z = -0.12;
+    portal.add(portalSurface);
+
+    const core = new THREE.Group();
+    portal.add(core);
+    const coreGeometry = new THREE.IcosahedronGeometry(0.62, 2);
+    const coreMaterial = new THREE.MeshStandardMaterial({
+      color: 0x17110f,
+      emissive: scenePalettes.beranda,
+      emissiveIntensity: 1.6,
+      metalness: 0.8,
+      roughness: 0.24,
+      flatShading: true,
+    });
+    const coreMesh = new THREE.Mesh(coreGeometry, coreMaterial);
+    core.add(coreMesh);
+
+    const coreWire = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(0.7, 1),
+      new THREE.MeshBasicMaterial({
+        color: scenePalettes.beranda,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.52,
+        blending: THREE.AdditiveBlending,
+      }),
+    );
+    core.add(coreWire);
+
+    const coreHalo = new THREE.Mesh(
+      new THREE.TorusGeometry(0.92, 0.012, 8, 100),
+      new THREE.MeshBasicMaterial({
+        color: scenePalettes.beranda,
+        transparent: true,
+        opacity: 0.65,
+        blending: THREE.AdditiveBlending,
+      }),
+    );
+    coreHalo.rotation.set(0.8, 0.35, 0);
+    core.add(coreHalo);
+
+    const crystalMaterial = new THREE.MeshStandardMaterial({
+      color: 0xf0c6a9,
+      emissive: scenePalettes.beranda,
+      emissiveIntensity: 0.55,
+      metalness: 0.7,
+      roughness: 0.28,
+      flatShading: true,
+    });
+    const crystals = Array.from({ length: mobile ? 4 : 7 }, (_, index) => {
+      const crystal = new THREE.Mesh(
+        new THREE.OctahedronGeometry(index % 2 ? 0.09 : 0.13, 0),
+        crystalMaterial,
+      );
+      const angle = (index / (mobile ? 4 : 7)) * Math.PI * 2;
+      const radius = 2.32 + (index % 2) * 0.22;
+      crystal.position.set(Math.cos(angle) * radius, Math.sin(angle) * radius, (index % 3) * 0.28 - 0.3);
+      crystal.userData.phase = index * 1.7;
+      portal.add(crystal);
+      return crystal;
+    });
+
+    const starsGeometry = new THREE.BufferGeometry();
+    const starCount = mobile ? 110 : 260;
+    const starPositions = new Float32Array(starCount * 3);
+    const randomValue = (seed: number) => {
+      const value = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
+      return value - Math.floor(value);
+    };
+    const updateStarField = (width: number, height: number) => {
+      const halfHeight = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * 12;
+      const halfWidth = halfHeight * (width / height);
+      for (let index = 0; index < starCount; index += 1) {
+        const offset = index * 3;
+        starPositions[offset] = (randomValue(index + 1) * 2 - 1) * halfWidth * 1.45;
+        starPositions[offset + 1] = (randomValue(index + 201) * 2 - 1) * halfHeight * 1.4;
+        starPositions[offset + 2] = -18 + randomValue(index + 401) * 24;
+      }
+      starsGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
+    };
+    const stars = new THREE.Points(
+      starsGeometry,
+      new THREE.PointsMaterial({
+        color: scenePalettes.beranda,
+        size: mobile ? 0.035 : 0.03,
+        transparent: true,
+        opacity: 0.72,
+        sizeAttenuation: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      }),
+    );
+    scene.add(stars);
+
+    const pointer = new THREE.Vector2();
+    const targetCamera = new THREE.Vector2();
+    const isReducedMotion = shouldReduceMotion === true;
     let elapsed = 0;
     let previousTime: number | null = null;
     let frameId = 0;
     let isVisible = false;
     let viewportWidth = 0;
     let viewportHeight = 0;
-    const isReducedMotion = shouldReduceMotion === true;
-    const mobile = window.matchMedia("(max-width: 640px)").matches;
-    const stars = Array.from({ length: mobile ? 28 : 54 }, (_, index) => ({
-      x: Math.sin(index * 127.1) * 0.48,
-      y: Math.sin(index * 311.7) * 0.48,
-      z: Math.sin(index * 74.7) * 210,
-      phase: index * 2.4,
-    }));
-
-    const draw = () => {
-      const width = viewportWidth;
-      const height = viewportHeight;
-      if (!width || !height) return;
-      context.clearRect(0, 0, width, height);
-      const centerX = width * 0.56;
-      const centerY = height * 0.49;
-      const baseRadius = Math.min(width * 0.47, height * 0.46);
-      const focalLength = Math.min(width, height) * 1.9;
-
-      const project = (x: number, y: number, z: number) => {
-        const depth = focalLength / (focalLength + z);
-        return [centerX + x * depth, centerY + y * depth] as const;
-      };
-
-      stars.forEach((star) => {
-        const drift = isReducedMotion ? 0 : elapsed;
-        const [x, y] = project(
-          star.x * width + Math.sin(star.phase + drift * 0.12) * 10,
-          star.y * height + Math.cos(star.phase + drift * 0.1) * 8,
-          star.z,
-        );
-        const shimmer = 0.16 + (Math.sin(star.phase + drift * 0.8) + 1) * 0.18;
-        context.fillStyle = `rgba(245, 219, 198, ${shimmer})`;
-        context.beginPath();
-        context.arc(x, y, 0.8 + shimmer * 1.3, 0, Math.PI * 2);
-        context.fill();
-      });
-
-      for (let ring = 0; ring < 3; ring += 1) {
-        const radius = baseRadius * (1 - ring * 0.14);
-        const rotation = (isReducedMotion ? 0 : elapsed * (ring % 2 ? -0.13 : 0.1)) + ring * 1.7;
-        const tilt = 0.48 + ring * 0.22;
-        const points: Array<readonly [number, number]> = [];
-
-        for (let step = 0; step <= 160; step += 1) {
-          const angle = (step / 160) * Math.PI * 2;
-          const circleX = Math.cos(angle) * radius;
-          const circleY = Math.sin(angle) * radius;
-          const rotatedX = circleX * Math.cos(rotation) - circleY * Math.sin(rotation);
-          const rotatedY = circleX * Math.sin(rotation) + circleY * Math.cos(rotation);
-          const tiltedY = rotatedY * Math.cos(tilt);
-          const depth = rotatedY * Math.sin(tilt);
-          points.push(project(rotatedX, tiltedY, depth));
-        }
-
-        context.beginPath();
-        points.forEach(([x, y], index) => {
-          if (index === 0) context.moveTo(x, y);
-          else context.lineTo(x, y);
-        });
-        context.closePath();
-        context.strokeStyle = ring === 1 ? "rgba(228, 173, 133, .2)" : "rgba(245, 241, 233, .12)";
-        context.lineWidth = ring === 0 ? 1.1 : 0.75;
-        context.shadowBlur = ring === 1 ? 18 : 10;
-        context.shadowColor = "rgba(228, 173, 133, .36)";
-        context.stroke();
-        context.shadowBlur = 0;
-
-        context.save();
-        context.setLineDash([2, 15 + ring * 5]);
-        context.lineDashOffset = isReducedMotion ? 0 : -elapsed * (ring % 2 ? -8 : 8);
-        context.strokeStyle = "rgba(245, 205, 174, .52)";
-        context.lineWidth = 1.3;
-        context.stroke();
-        context.restore();
-
-        const nodeAngle = (isReducedMotion ? 0 : elapsed * (ring % 2 ? -0.13 : 0.1)) + ring * 1.7 + 0.8;
-        const node = points[Math.round((nodeAngle / (Math.PI * 2)) * 160) % 160];
-        if (node) {
-          context.beginPath();
-          context.arc(node[0], node[1], 2.2, 0, Math.PI * 2);
-          context.fillStyle = "rgba(255, 224, 201, .92)";
-          context.shadowBlur = 12;
-          context.shadowColor = "rgba(228, 173, 133, .85)";
-          context.fill();
-          context.shadowBlur = 0;
-        }
-      }
-
-      const halo = context.createRadialGradient(centerX, centerY, 1, centerX, centerY, baseRadius * 0.82);
-      halo.addColorStop(0, "rgba(228, 173, 133, .09)");
-      halo.addColorStop(0.52, "rgba(228, 173, 133, .035)");
-      halo.addColorStop(1, "rgba(228, 173, 133, 0)");
-      context.fillStyle = halo;
-      context.beginPath();
-      context.arc(centerX, centerY, baseRadius * 0.82, 0, Math.PI * 2);
-      context.fill();
-    };
 
     const resize = () => {
       const bounds = canvas.getBoundingClientRect();
-      const pixelRatio = Math.min(window.devicePixelRatio || 1, mobile ? 1 : 1.5);
+      if (!bounds.width || !bounds.height) return;
       viewportWidth = bounds.width;
       viewportHeight = bounds.height;
-      canvas.width = Math.round(bounds.width * pixelRatio);
-      canvas.height = Math.round(bounds.height * pixelRatio);
-      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-      draw();
+      renderer.setSize(bounds.width, bounds.height, false);
+      camera.aspect = bounds.width / bounds.height;
+      camera.updateProjectionMatrix();
+      const compact = bounds.width < 640;
+      portal.position.set(compact ? 0.35 : 2.45, 0.05, -2.7);
+      portal.scale.setScalar(compact ? 0.82 : 1);
+      portalLight.position.copy(portal.position);
+      updateStarField(bounds.width, bounds.height);
+      render();
     };
+
+    const render = () => {
+      if (!viewportWidth || !viewportHeight) return;
+      const target = paletteTarget.current;
+      const colorBlend = isReducedMotion ? 1 : 0.035;
+      portalRings.forEach((ring) => {
+        const material = ring.material as THREE.MeshBasicMaterial;
+        material.color.lerp(target, colorBlend);
+      });
+      portalMaterial.uniforms.uTime.value = elapsed;
+      (portalMaterial.uniforms.uColor.value as THREE.Color).lerp(target, colorBlend);
+      coreMaterial.emissive.lerp(target, colorBlend);
+      (coreWire.material as THREE.MeshBasicMaterial).color.lerp(target, colorBlend);
+      (coreHalo.material as THREE.MeshBasicMaterial).color.lerp(target, colorBlend);
+      crystalMaterial.emissive.lerp(target, colorBlend);
+      (stars.material as THREE.PointsMaterial).color.lerp(target, colorBlend);
+      portalLight.color.lerp(target, colorBlend);
+      portal.rotation.y = Math.sin(elapsed * 0.24) * 0.12 + pointer.x * 0.08;
+      portal.rotation.x = Math.cos(elapsed * 0.2) * 0.055 - pointer.y * 0.06;
+      portal.rotation.z = Math.sin(elapsed * 0.12) * 0.035;
+      arcA.rotation.z = elapsed * 0.22;
+      arcB.rotation.z = -elapsed * 0.17;
+      arcC.rotation.z = elapsed * 0.12;
+      core.rotation.y = elapsed * 0.38;
+      core.rotation.x = Math.sin(elapsed * 0.3) * 0.14;
+      coreWire.rotation.y = -elapsed * 0.26;
+      coreWire.rotation.x = elapsed * 0.17;
+      coreHalo.rotation.z = elapsed * 0.2;
+      crystals.forEach((crystal) => {
+        crystal.rotation.x += 0.006;
+        crystal.rotation.y += 0.009;
+        crystal.position.y += Math.sin(elapsed * 1.4 + crystal.userData.phase) * 0.0007;
+      });
+      const positions = starsGeometry.getAttribute("position") as THREE.BufferAttribute;
+      for (let index = 2; index < positions.array.length; index += 3) {
+        positions.array[index] += 0.018;
+        if (positions.array[index] > 6) positions.array[index] = -18;
+      }
+      positions.needsUpdate = true;
+      stars.rotation.z = Math.sin(elapsed * 0.04) * 0.018;
+      targetCamera.set(pointer.x * 0.28, pointer.y * 0.18);
+      camera.position.x += (targetCamera.x - camera.position.x) * 0.025;
+      camera.position.y += (targetCamera.y - camera.position.y) * 0.025;
+      camera.lookAt(0, 0, -2);
+      renderer.render(scene, camera);
+    };
+    renderScene.current = render;
 
     const animate = (time: number) => {
       if (previousTime !== null) elapsed += Math.min((time - previousTime) / 1000, 0.05);
       previousTime = time;
-      draw();
+      render();
       if (!isReducedMotion && isVisible && document.visibilityState === "visible") {
         frameId = window.requestAnimationFrame(animate);
       }
@@ -501,6 +658,11 @@ function HeroArtwork({
       previousTime = null;
     };
 
+    const handlePointerMove = (event: PointerEvent) => {
+      if (isReducedMotion || event.pointerType !== "mouse") return;
+      pointer.set((event.clientX / window.innerWidth - 0.5) * 2, (0.5 - event.clientY / window.innerHeight) * 2);
+    };
+
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(canvas);
     resize();
@@ -511,6 +673,7 @@ function HeroArtwork({
       else stopAnimation();
     });
     intersectionObserver.observe(canvas);
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") startAnimation();
@@ -522,9 +685,44 @@ function HeroArtwork({
       stopAnimation();
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
+      window.removeEventListener("pointermove", handlePointerMove);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      renderScene.current = null;
+      const geometries = new Set<THREE.BufferGeometry>();
+      const disposedMaterials = new Set<THREE.Material>();
+      scene.traverse((object) => {
+        if (object instanceof THREE.Mesh || object instanceof THREE.Points) {
+          geometries.add(object.geometry);
+          const objectMaterials = Array.isArray(object.material) ? object.material : [object.material];
+          objectMaterials.forEach((material) => disposedMaterials.add(material));
+        }
+      });
+      geometries.forEach((geometry) => geometry.dispose());
+      disposedMaterials.forEach((material) => material.dispose());
+      ringMaterial.dispose();
+      renderer.dispose();
     };
   }, [shouldReduceMotion]);
+
+  return <canvas className="portfolio-world-canvas" ref={canvasRef} aria-hidden="true" />;
+}
+
+function HeroArtwork({
+  shouldReduceMotion,
+  scrollOffset,
+}: {
+  shouldReduceMotion: boolean | null;
+  scrollOffset: MotionValue<number>;
+}) {
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const rotateX = useSpring(pointerX, { stiffness: 160, damping: 22, mass: 0.5 });
+  const rotateY = useSpring(pointerY, { stiffness: 160, damping: 22, mass: 0.5 });
+  const portraitX = useTransform(rotateY, [-7, 7], [-12, 12]);
+  const portraitY = useTransform(rotateX, [-6, 6], [10, -10]);
+  const cardX = useTransform(rotateY, [-7, 7], [18, -18]);
+  const cardY = useTransform(rotateX, [-6, 6], [-12, 12]);
+  const scrollY = useTransform(scrollOffset, [0, 100], [0, -26]);
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (shouldReduceMotion || event.pointerType !== "mouse") return;
@@ -555,9 +753,6 @@ function HeroArtwork({
       onPointerLeave={resetTilt}
       transition={{ duration: 0.8, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
     >
-      <canvas className="hero-world-canvas" ref={worldCanvasRef} aria-hidden="true" />
-      <div className="hero-art-orbit hero-art-orbit-back" aria-hidden="true" />
-      <div className="hero-art-orbit hero-art-orbit-front" aria-hidden="true" />
       <motion.div
         className="hero-portrait-layer"
         style={shouldReduceMotion ? undefined : { x: portraitX, y: portraitY }}
@@ -748,6 +943,7 @@ export default function Home() {
   return (
     <>
       <CursorEffects introVisible={introVisible} pageProgress={pageProgress} />
+      <PortfolioWorld activePage={activePage} shouldReduceMotion={shouldReduceMotion} />
       <AnimatePresence>
         {introVisible && (
           <motion.div
@@ -959,17 +1155,16 @@ export default function Home() {
       <motion.div
         key={activePage}
         className="scene-transition"
-        data-scene={activePage}
-        data-travel={travelDirection}
         initial={shouldReduceMotion ? false : {
           opacity: 0,
-          scale: 0.94,
-          rotateX: 4,
-          rotateY: travelDirection === "forward" ? -9 : 9,
-          z: -120,
+          filter: "blur(10px)",
+          scale: 0.88,
+          rotateX: 8,
+          rotateY: travelDirection === "forward" ? -16 : 16,
+          z: -260,
         }}
-        animate={{ opacity: 1, scale: 1, rotateX: 0, rotateY: 0, z: 0 }}
-        transition={{ duration: shouldReduceMotion ? 0 : 0.72, ease: [0.16, 1, 0.3, 1] }}
+        animate={{ opacity: 1, filter: "blur(0px)", scale: 1, rotateX: 0, rotateY: 0, z: 0 }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.95, ease: [0.16, 1, 0.3, 1] }}
         style={{ transformPerspective: 1400 }}
       >
       <motion.div

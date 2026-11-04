@@ -27,7 +27,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid #d0d0cb; outline-offs
 ::selection { background: var(--white); color: var(--black); }
 .section-wrap { width: calc(100% - clamp(40px, 8vw, 144px)); max-width: none; margin-inline: auto; }
 [hidden] { display: none !important; }
-main { height: 100svh; min-height: 0; overflow: hidden; padding-bottom: 72px; }
+main { position: relative; z-index: 1; height: 100svh; min-height: 0; overflow: hidden; padding-bottom: 72px; }
 .portfolio-page:not([hidden]) { height: calc(100svh - 150px); min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
 .portfolio-page:not([hidden])::-webkit-scrollbar { display: none; }
 .hero.portfolio-page:not([hidden]) { height: calc(100svh - 276px); min-height: 0; }
@@ -1274,17 +1274,6 @@ button:focus-visible, a:focus-visible { outline-color: var(--accent-strong); }
   transform-style: preserve-3d;
   will-change: transform;
 }
-.hero-world-canvas {
-  position: absolute;
-  z-index: 0;
-  inset: -9%;
-  width: 118%;
-  height: 118%;
-  overflow: visible;
-  pointer-events: none;
-  opacity: .9;
-  mix-blend-mode: screen;
-}
 .hero-art-3d::before {
   position: absolute;
   z-index: -1;
@@ -1296,47 +1285,6 @@ button:focus-visible, a:focus-visible { outline-color: var(--accent-strong); }
   box-shadow: 0 28px 80px rgba(0,0,0,.24);
   transform: translateZ(-42px) rotateY(-8deg) rotateX(4deg);
   pointer-events: none;
-}
-.hero-art-3d::after {
-  position: absolute;
-  z-index: -2;
-  top: 8%;
-  right: 3%;
-  width: 78%;
-  aspect-ratio: 1;
-  content: "";
-  border: 1px solid rgba(212,154,115,.27);
-  border-radius: 50%;
-  box-shadow: 0 0 0 14px rgba(212,154,115,.035), 0 0 0 34px rgba(245,241,233,.025);
-  transform: translateZ(-100px) rotateX(68deg) rotateZ(-18deg);
-  pointer-events: none;
-}
-.hero-art-orbit {
-  position: absolute;
-  z-index: 3;
-  width: 72%;
-  aspect-ratio: 1;
-  border: 1px solid rgba(212,154,115,.52);
-  border-radius: 50%;
-  pointer-events: none;
-  transform-style: preserve-3d;
-}
-.hero-art-orbit-back {
-  top: -1%;
-  right: -9%;
-  border-left-color: transparent;
-  border-bottom-color: rgba(245,241,233,.16);
-  transform: translateZ(-52px) rotateX(69deg) rotateZ(-24deg);
-  animation: orbit-drift 16s linear infinite;
-}
-.hero-art-orbit-front {
-  left: -12%;
-  bottom: -7%;
-  width: 62%;
-  border-color: rgba(245,241,233,.32);
-  border-right-color: transparent;
-  transform: translateZ(58px) rotateX(72deg) rotateZ(27deg);
-  animation: orbit-drift 20s linear infinite reverse;
 }
 .hero-art-3d .portrait-image { transform: translateZ(28px) scale(1.015); }
 .hero-portrait-layer { position: absolute; z-index: 2; inset: 0; transform-style: preserve-3d; }
@@ -1433,11 +1381,6 @@ button:focus-visible, a:focus-visible { outline-color: var(--accent-strong); }
   50% { translate: 0 -9px; }
 }
 
-@keyframes orbit-drift {
-  0% { rotate: 0deg; }
-  100% { rotate: 360deg; }
-}
-
 @media (max-width: 900px) {
   .hero-float-code { left: -1%; }
   .hero-float-stack { right: auto; bottom: 2%; left: 0; }
@@ -1445,11 +1388,7 @@ button:focus-visible, a:focus-visible { outline-color: var(--accent-strong); }
 
 @media (max-width: 640px) {
   .hero-art-3d { overflow: visible; }
-  .hero-world-canvas { inset: -5%; width: 110%; height: 110%; opacity: .56; }
   .hero-art-3d::before { inset: 8% 7%; transform: translateZ(-24px) rotateY(-5deg) rotateX(3deg); }
-  .hero-art-3d::after { top: 3%; right: 4%; width: 74%; transform: translateZ(-52px) rotateX(68deg) rotateZ(-18deg); }
-  .hero-art-orbit-back { right: -4%; transform: translateZ(-26px) rotateX(69deg) rotateZ(-24deg); }
-  .hero-art-orbit-front { left: -5%; bottom: -3%; transform: translateZ(32px) rotateX(72deg) rotateZ(27deg); }
   .hero-float-card { gap: 4px; padding: 8px 9px; border-radius: 6px; }
   .hero-float-code { top: 10%; left: 0; width: 132px; transform: translateZ(58px) rotateY(8deg) rotateX(-3deg); }
   .hero-float-stack { right: auto; bottom: 0; left: 0; width: 142px; transform: translateZ(48px) rotateY(-8deg) rotateX(4deg); }
@@ -1461,7 +1400,7 @@ button:focus-visible, a:focus-visible { outline-color: var(--accent-strong); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-art-orbit, .hero-float-card { animation: none; }
+  .hero-float-card { animation: none; }
   .hero-art-3d, .skill-card, .leadership-card { transform-style: flat; }
 }
 
@@ -1541,41 +1480,17 @@ button:focus-visible, a:focus-visible { outline-color: var(--accent-strong); }
   will-change: transform, opacity;
 }
 .scene-transition { perspective: 1400px; }
-.scene-transition::before,
-.scene-transition::after {
-  position: absolute;
-  z-index: 8;
-  content: "";
-  pointer-events: none;
-}
-.scene-transition::before {
-  inset: 6% 12%;
-  border: 1px solid rgba(var(--scene-gate-color, 228, 173, 133), .48);
-  border-radius: 50%;
-  box-shadow:
-    inset 0 0 50px rgba(var(--scene-gate-color, 228, 173, 133), .1),
-    0 0 34px rgba(var(--scene-gate-color, 228, 173, 133), .2);
-  opacity: 0;
-  transform: perspective(1400px) scale(1.16) rotateX(18deg) rotateY(var(--gate-tilt, -10deg));
-  animation: scene-gate 1s cubic-bezier(.16, 1, .3, 1) both;
-}
-.scene-transition::after {
-  top: 50%;
-  left: -30%;
-  width: 160%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(var(--scene-gate-color, 228, 173, 133), .72), transparent);
-  box-shadow: 0 0 26px 4px rgba(var(--scene-gate-color, 228, 173, 133), .2);
-  opacity: 0;
-  transform: rotate(-8deg) scaleX(.3);
-  animation: scene-scan .9s cubic-bezier(.16, 1, .3, 1) both;
-}
-.scene-transition[data-travel="backward"] { --gate-tilt: 10deg; }
-.scene-transition[data-scene="karya"] { --scene-gate-color: 146, 190, 177; }
-.scene-transition[data-scene="tentang"] { --scene-gate-color: 187, 162, 137; }
-.scene-transition[data-scene="pengalaman"] { --scene-gate-color: 218, 173, 132; }
-.scene-transition[data-scene="kontak"] { --scene-gate-color: 162, 169, 214; }
 .portfolio-scene > .portfolio-page { position: relative; z-index: 1; }
+.portfolio-world-canvas {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  opacity: .52;
+  mix-blend-mode: screen;
+}
 .scene-atmosphere {
   position: fixed;
   z-index: 0;
@@ -1628,16 +1543,6 @@ button:focus-visible, a:focus-visible { outline-color: var(--accent-strong); }
   from { transform: translate3d(-4px, 6px, -24px); opacity: .1; }
   to { transform: translate3d(8px, -12px, 24px); opacity: .42; }
 }
-@keyframes scene-gate {
-  0% { opacity: 0; transform: perspective(1400px) scale(1.16) rotateX(18deg) rotateY(var(--gate-tilt, -10deg)); }
-  22% { opacity: .76; }
-  100% { opacity: 0; transform: perspective(1400px) scale(.72) rotateX(0) rotateY(0); }
-}
-@keyframes scene-scan {
-  0% { opacity: 0; transform: translateY(28vh) rotate(-8deg) scaleX(.3); }
-  22% { opacity: .8; }
-  100% { opacity: 0; transform: translateY(-28vh) rotate(-8deg) scaleX(1); }
-}
 .work-section .section-heading, .leadership-heading, .about-profile, .contact-topline {
   translate: 0 var(--scroll-back, 0px);
 }
@@ -1653,11 +1558,11 @@ button:focus-visible, a:focus-visible { outline-color: var(--accent-strong); }
 
 @media (max-width: 640px) {
   .about-fact { box-shadow: 0 6px 14px rgba(0,0,0,.1); }
+  .portfolio-world-canvas { opacity: .34; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .scene-transition, .portfolio-scene { will-change: auto; }
-  .scene-transition::before, .scene-transition::after { animation: none; }
   .scene-atmosphere i { animation: none; }
   [data-card-spotlight]::after { transition: none; }
   .work-section .section-heading, .work-section .filter-row, .project-grid,
@@ -1666,7 +1571,7 @@ button:focus-visible, a:focus-visible { outline-color: var(--accent-strong); }
     translate: none;
     transition: none;
   }
-  .intro-orbit-outer, .hero-art-orbit, .hero-float-card { animation: none !important; }
+  .intro-orbit-outer, .hero-float-card { animation: none !important; }
   .intro-enter:hover { transform: none; }
   .intro-emblem, .about-stamp, .page-nav-button, .skill-card,
   .leadership-card { transform-style: flat; }
