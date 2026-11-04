@@ -867,6 +867,9 @@ export default function Home() {
     const motionScale = shouldReduceMotion ? 0 : 1;
     element.style.setProperty("--scroll-back", `${-12 * progress * motionScale}px`);
     element.style.setProperty("--scroll-front", `${7 * progress * motionScale}px`);
+    if (element.id === "pengalaman") {
+      element.style.setProperty("--experience-progress", String(maxScroll > 0 ? progress : 1));
+    }
   };
 
   const handleScenePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -908,6 +911,9 @@ export default function Home() {
       const maxScroll = page.scrollHeight - page.clientHeight;
       const scrollFraction = maxScroll > 0 ? page.scrollTop / maxScroll : 0;
       pageProgress.set((activePageIndex + scrollFraction) / navigation.length);
+      if (activePage === "pengalaman") {
+        page.style.setProperty("--experience-progress", String(maxScroll > 0 ? scrollFraction : 1));
+      }
     };
 
     page.addEventListener("scroll", updateProgress, { passive: true });
@@ -1325,25 +1331,52 @@ export default function Home() {
             </>
           </Reveal>
           <div className="leadership-list">
+            <span className="experience-timeline" aria-hidden="true" />
             {experiences.map((item, index) => (
               <motion.article
                 className={`leadership-card${item.images ? " leadership-card-featured" : ""}`}
                 key={item.slug}
-                initial={shouldReduceMotion ? false : { opacity: 0, x: -14 }}
-                whileInView={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }}
-                whileHover={shouldReduceMotion ? undefined : { y: -5, rotateX: 2 }}
-                whileTap={shouldReduceMotion ? undefined : { scale: 0.99, rotateX: 1.5, rotateY: -1.5 }}
+                initial={shouldReduceMotion ? false : {
+                  opacity: 0,
+                  x: index % 2 === 0 ? -32 : 32,
+                  y: 22,
+                  rotateY: index % 2 === 0 ? -9 : 9,
+                  scale: 0.96,
+                }}
+                whileInView={shouldReduceMotion ? undefined : {
+                  opacity: 1,
+                  x: 0,
+                  y: 0,
+                  rotateY: 0,
+                  scale: 1,
+                }}
+                whileHover={shouldReduceMotion ? undefined : {
+                  y: -6,
+                  rotateX: 2,
+                  rotateY: index % 2 === 0 ? 1.5 : -1.5,
+                  z: 12,
+                }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.985 }}
                 data-card-spotlight
                 onPointerMove={updateCardSpotlight}
-                viewport={{ once: true, amount: 0.35 }}
-                transition={{ duration: 0.4, delay: index * 0.055, ease: "easeOut" }}
+                viewport={{ once: true, amount: 0.18 }}
+                transition={{ type: "spring", stiffness: 180, damping: 22, delay: index * 0.07 }}
+                style={shouldReduceMotion ? undefined : { transformPerspective: 1100 }}
               >
                 <Link
                   className={`leadership-card-link${item.images ? " leadership-card-featured" : ""}`}
                   href={`/pengalaman/${item.slug}`}
                   aria-label={`Lihat kegiatan ${item.role}`}
                 >
-                  <span className="leadership-index">0{index + 1}</span>
+                  <motion.span
+                    className="leadership-index"
+                    initial={shouldReduceMotion ? false : { scale: 0.7, opacity: 0.4 }}
+                    whileInView={shouldReduceMotion ? undefined : { scale: 1, opacity: 1 }}
+                    viewport={{ once: true, amount: 0.18 }}
+                    transition={{ type: "spring", stiffness: 340, damping: 20, delay: index * 0.07 + 0.1 }}
+                  >
+                    0{index + 1}
+                  </motion.span>
                   {item.images ? (
                     <div className="leadership-photos">
                       {item.images.map((image) => (
@@ -1354,7 +1387,8 @@ export default function Home() {
                           alt={image.alt}
                           width={image.width}
                           height={image.height}
-                          sizes="(max-width: 640px) 72px, 96px"
+                          sizes="(max-width: 640px) 33px, 106px"
+                          loading="lazy"
                         />
                       ))}
                     </div>
@@ -1490,7 +1524,15 @@ export default function Home() {
       </section>
 
       <section className="contact-section section-wrap portfolio-page" id="kontak" hidden={activePage !== "kontak"} onScroll={handlePortfolioScroll}>
-        <div className="contact-topline"><span className="eyebrow">05 / KONTAK</span><span>MARI MULAI BERKOLABORASI</span></div>
+        <motion.div
+          className="contact-topline"
+          initial={shouldReduceMotion ? false : { opacity: 0, y: -14 }}
+          whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.55 }}
+        >
+          <span className="eyebrow">05 / KONTAK</span><span>MARI MULAI BERKOLABORASI</span>
+        </motion.div>
         <div className="contact-layout">
           <motion.div
             className="contact-copy"

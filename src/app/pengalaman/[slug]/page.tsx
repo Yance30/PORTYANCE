@@ -66,7 +66,8 @@ export default async function ExperiencePage({ params }: ExperiencePageProps) {
                   alt={image.alt}
                   width={image.width}
                   height={image.height}
-                  sizes="(max-width: 700px) 100vw, 80vw"
+                  sizes="(max-width: 700px) calc(100vw - 40px), (max-width: 1100px) 44vw, 500px"
+                  loading="lazy"
                 />
                 <figcaption>{image.alt}</figcaption>
               </figure>
