@@ -424,6 +424,7 @@ export default function Home() {
   const [introVisible, setIntroVisible] = useState(true);
   const introSkipRef = useRef<HTMLButtonElement>(null);
   const [activePage, setActivePage] = useState("beranda");
+  const [travelDirection, setTravelDirection] = useState<"forward" | "backward">("forward");
   const [activeFilter, setActiveFilter] = useState<(typeof filters)[number]>("Semua");
   const [menuOpen, setMenuOpen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
@@ -443,6 +444,8 @@ export default function Home() {
   );
   const navigateToPage = (page: string) => {
     if (!navigation.some(([, id]) => id === page)) return;
+    const nextPageIndex = navigation.findIndex(([, id]) => id === page);
+    setTravelDirection(nextPageIndex >= activePageIndex ? "forward" : "backward");
     if (soundEnabled && audioContextRef.current) playUiSound(audioContextRef.current);
     if (window.location.hash !== `#${page}`) {
       window.history.pushState(null, "", `#${page}`);
@@ -478,6 +481,15 @@ export default function Home() {
   const resetIntroPointer = () => {
     introPointerX.set(0);
     introPointerY.set(0);
+  };
+
+  const handlePortfolioScroll = (event: React.UIEvent<HTMLElement>) => {
+    const element = event.currentTarget;
+    const maxScroll = element.scrollHeight - element.clientHeight;
+    const progress = maxScroll > 0 ? Math.min(element.scrollTop / maxScroll, 1) : 0;
+    const motionScale = shouldReduceMotion ? 0 : 1;
+    element.style.setProperty("--scroll-back", `${-12 * progress * motionScale}px`);
+    element.style.setProperty("--scroll-front", `${7 * progress * motionScale}px`);
   };
 
   const dismissIntro = useCallback(() => {
@@ -525,6 +537,9 @@ export default function Home() {
       const page = navigation.some(([, id]) => id === requestedPage)
         ? requestedPage
         : "beranda";
+      const currentIndex = navigation.findIndex(([, id]) => id === activePage);
+      const nextIndex = navigation.findIndex(([, id]) => id === page);
+      setTravelDirection(nextIndex >= currentIndex ? "forward" : "backward");
       setActivePage(page);
       setMenuOpen(false);
     };
@@ -532,7 +547,7 @@ export default function Home() {
     syncPageFromUrl();
     window.addEventListener("hashchange", syncPageFromUrl);
     return () => window.removeEventListener("hashchange", syncPageFromUrl);
-  }, []);
+  }, [activePage]);
 
   return (
     <>
@@ -737,11 +752,36 @@ export default function Home() {
         )}
       </AnimatePresence>
 
+      <section className="intro-strip" aria-label="Ringkasan" hidden={activePage !== "beranda"}>
+        <div className="section-wrap intro-inner">
+          <div className="dashboard-stat"><strong>05</strong><span>PROYEK PORTOFOLIO</span></div>
+          <div className="dashboard-stat"><strong>12</strong><span>BAHASA & TOOLS</span></div>
+          <div className="dashboard-stat"><strong>05</strong><span>PENGALAMAN ORGANISASI</span></div>
+        </div>
+      </section>
+
+      <motion.div
+        key={activePage}
+        className="portfolio-scene"
+        initial={shouldReduceMotion ? false : {
+          opacity: 0,
+          scale: 0.94,
+          rotateX: 4,
+          rotateY: travelDirection === "forward" ? -9 : 9,
+          z: -120,
+        }}
+        animate={{ opacity: 1, scale: 1, rotateX: 0, rotateY: 0, z: 0 }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.72, ease: [0.16, 1, 0.3, 1] }}
+        style={{ transformPerspective: 1400 }}
+      >
       <section
         className="hero section-wrap portfolio-page"
         id="beranda"
         hidden={activePage !== "beranda"}
-        onScroll={(event) => heroScrollOffset.set(Math.min(event.currentTarget.scrollTop, 100))}
+        onScroll={(event) => {
+          handlePortfolioScroll(event);
+          heroScrollOffset.set(Math.min(event.currentTarget.scrollTop, 100));
+        }}
       >
         <motion.div
           className="hero-copy"
@@ -770,15 +810,7 @@ export default function Home() {
         <button className="scroll-cue" onClick={() => navigateToPage("karya")}><ArrowDownRight size={14} /> LIHAT KARYA</button>
       </section>
 
-      <section className="intro-strip" aria-label="Ringkasan" hidden={activePage !== "beranda"}>
-        <div className="section-wrap intro-inner">
-          <div className="dashboard-stat"><strong>05</strong><span>PROYEK PORTOFOLIO</span></div>
-          <div className="dashboard-stat"><strong>12</strong><span>BAHASA & TOOLS</span></div>
-          <div className="dashboard-stat"><strong>05</strong><span>PENGALAMAN ORGANISASI</span></div>
-        </div>
-      </section>
-
-      <section className="work-section section-wrap portfolio-page" id="karya" hidden={activePage !== "karya"}>
+      <section className="work-section section-wrap portfolio-page" id="karya" hidden={activePage !== "karya"} onScroll={handlePortfolioScroll}>
         <Reveal className="section-heading">
           <>
             <div>
@@ -868,7 +900,7 @@ export default function Home() {
         <p className="sample-note"><Asterisk size={14} /> Ringkasan disusun dari repositori yang ditinjau. Demo tersedia untuk proyek yang memiliki tautan demo.</p>
       </section>
 
-      <section className="leadership-section portfolio-page" id="pengalaman" hidden={activePage !== "pengalaman"}>
+      <section className="leadership-section portfolio-page" id="pengalaman" hidden={activePage !== "pengalaman"} onScroll={handlePortfolioScroll}>
         <div className="section-wrap">
           <Reveal className="section-heading leadership-heading">
             <>
@@ -932,7 +964,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="about-section section-wrap portfolio-page" id="tentang" hidden={activePage !== "tentang"}>
+      <section className="about-section section-wrap portfolio-page" id="tentang" hidden={activePage !== "tentang"} onScroll={handlePortfolioScroll}>
         <div className="about-profile">
           <div className="about-stamp">
             <Image src="/yance-portrait.png" alt="Foto profil Yance" fill sizes="(max-width: 640px) 100vw, 36vw" />
@@ -1036,7 +1068,7 @@ export default function Home() {
         </section>
       </section>
 
-      <section className="contact-section section-wrap portfolio-page" id="kontak" hidden={activePage !== "kontak"}>
+      <section className="contact-section section-wrap portfolio-page" id="kontak" hidden={activePage !== "kontak"} onScroll={handlePortfolioScroll}>
         <div className="contact-topline"><span className="eyebrow">05 / KONTAK</span><span>MARI MULAI BERKOLABORASI</span></div>
         <div className="contact-layout">
           <motion.div
@@ -1093,6 +1125,7 @@ export default function Home() {
           <button onClick={() => navigateToPage("beranda")}>Kembali ke beranda <ArrowRight size={14} /></button>
         </div>
       </section>
+      </motion.div>
 
       <nav className="page-controls" aria-label="Navigasi halaman">
         {navigation.map(([label, page], index) => {
