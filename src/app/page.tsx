@@ -445,6 +445,22 @@ export default function Home() {
           <span className="wordmark-icon">P<span>.</span></span>
           <span>PORTYANCE<small>PORTOFOLIO DIGITAL</small></span>
         </button>
+        <div className="header-page-context" aria-live="polite">
+          <span className="header-page-count">0{activePageIndex + 1}<i>/</i>0{navigation.length}</span>
+          <span className="header-page-divider" aria-hidden="true" />
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              className="header-page-label"
+              key={activePage}
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={shouldReduceMotion ? undefined : { opacity: 0, y: -5 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.18 }}
+            >
+              {navigation[activePageIndex]?.[0] ?? "Beranda"}
+            </motion.span>
+          </AnimatePresence>
+        </div>
         <button className="header-cta" onClick={() => navigateToPage("kontak")}>Hubungi saya <ArrowUpRight size={15} /></button>
         <button
           className="menu-toggle"
@@ -624,7 +640,12 @@ export default function Home() {
                 <span className="eyebrow section-eyebrow">04 / PENGALAMAN ORGANISASI</span>
                 <h2>Pengalaman<br /><span className="leadership-heading-muted">berorganisasi.</span></h2>
               </div>
-              <p className="leadership-intro">Belajar memimpin, berkolaborasi, dan bertanggung jawab lewat pengalaman organisasi.</p>
+              <div className="leadership-heading-aside">
+                <p className="leadership-intro">Belajar memimpin, berkolaborasi, dan bertanggung jawab lewat pengalaman organisasi.</p>
+                <span className="leadership-total">
+                  <strong>{String(experiences.length).padStart(2, "0")}</strong> PENGALAMAN
+                </span>
+              </div>
             </>
           </Reveal>
           <div className="leadership-list">
