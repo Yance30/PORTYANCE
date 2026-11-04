@@ -1381,8 +1381,9 @@ button:focus-visible, a:focus-visible { outline-color: var(--accent-strong); }
   transform: translateZ(94px) rotateY(9deg) rotateX(-4deg);
 }
 .hero-float-stack {
-  right: 2%;
-  bottom: 21%;
+  right: auto;
+  bottom: 5%;
+  left: 2%;
   width: clamp(148px, 17vw, 202px);
   animation-delay: -2.2s;
   transform: translateZ(118px) rotateY(-10deg) rotateX(5deg);
@@ -1451,7 +1452,7 @@ button:focus-visible, a:focus-visible { outline-color: var(--accent-strong); }
 
 @media (max-width: 900px) {
   .hero-float-code { left: -1%; }
-  .hero-float-stack { right: -1%; }
+  .hero-float-stack { right: auto; bottom: 2%; left: 0; }
 }
 
 @media (max-width: 640px) {
@@ -1462,7 +1463,7 @@ button:focus-visible, a:focus-visible { outline-color: var(--accent-strong); }
   .hero-art-orbit-front { left: -5%; bottom: -3%; transform: translateZ(32px) rotateX(72deg) rotateZ(27deg); }
   .hero-float-card { gap: 4px; padding: 8px 9px; border-radius: 6px; }
   .hero-float-code { top: 10%; left: 0; width: 132px; transform: translateZ(58px) rotateY(8deg) rotateX(-3deg); }
-  .hero-float-stack { right: auto; bottom: 0; left: 0; width: 142px; transform: translateZ(74px) rotateY(-8deg) rotateX(4deg); }
+  .hero-float-stack { right: auto; bottom: 0; left: 0; width: 142px; transform: translateZ(48px) rotateY(-8deg) rotateX(4deg); }
   .hero-float-card > span:first-child { font-size: 7px; }
   .hero-float-code b { font-size: 15px; }
   .hero-float-card small { font-size: 8px; }
