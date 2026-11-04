@@ -877,8 +877,8 @@ export default function Home() {
     const bounds = event.currentTarget.getBoundingClientRect();
     const x = (event.clientX - bounds.left) / bounds.width;
     const y = (event.clientY - bounds.top) / bounds.height;
-    scenePointerX.set((x - 0.5) * 3);
-    scenePointerY.set((0.5 - y) * 2);
+    scenePointerX.set((x - 0.5) * 0.6);
+    scenePointerY.set((0.5 - y) * 0.4);
   };
 
   const resetScenePointer = () => {
@@ -1410,10 +1410,16 @@ export default function Home() {
 
       <section className="about-section section-wrap portfolio-page" id="tentang" hidden={activePage !== "tentang"} onScroll={handlePortfolioScroll}>
         <div className="about-profile">
-          <div className="about-stamp">
+          <motion.div
+            className="about-stamp"
+            initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.78, y: 22 }}
+            whileInView={shouldReduceMotion ? undefined : { opacity: 1, scale: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{ type: "spring", stiffness: 180, damping: 20 }}
+          >
             <Image src="/yance-portrait.png" alt="Foto profil Yance" fill sizes="(max-width: 640px) 100vw, 36vw" />
             <span>YANCE<br />PORTFOLIO</span>
-          </div>
+          </motion.div>
           <Reveal className="about-content" delay={0.1}>
             <span className="eyebrow section-eyebrow">03 / TENTANG SAYA</span>
             <h2>Halo, saya Yance.</h2>
@@ -1476,11 +1482,17 @@ export default function Home() {
           </motion.article>
         </div>
         <section className="about-skills" aria-labelledby="about-skills-title">
-          <div className="about-skills-heading">
+          <motion.div
+            className="about-skills-heading"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 22 }}
+            whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.25 }}
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+          >
             <span className="eyebrow section-eyebrow">KEAHLIAN</span>
             <h3 id="about-skills-title">Teknologi yang saya gunakan</h3>
             <p>Bahasa pemrograman, pengembangan web dan mobile, basis data, serta perangkat desain.</p>
-          </div>
+          </motion.div>
           <div className="skills-grid">
             {skills.map((skill, index) => (
               <motion.article
@@ -1505,18 +1517,18 @@ export default function Home() {
             <div>
               <span className="eyebrow section-eyebrow">FOKUS PENGEMBANGAN</span>
               <div className="skill-pills">
-                <span>Dashboard & analitik data</span>
-                <span>Visualisasi data</span>
-                <span>Sistem informasi</span>
+                <motion.span whileHover={shouldReduceMotion ? undefined : { y: -3, scale: 1.04 }}>Dashboard & analitik data</motion.span>
+                <motion.span whileHover={shouldReduceMotion ? undefined : { y: -3, scale: 1.04 }}>Visualisasi data</motion.span>
+                <motion.span whileHover={shouldReduceMotion ? undefined : { y: -3, scale: 1.04 }}>Sistem informasi</motion.span>
               </div>
             </div>
             <div>
               <span className="eyebrow section-eyebrow">KETERAMPILAN KOLABORASI</span>
               <div className="skill-pills">
-                <span>Komunikasi</span>
-                <span>Kolaborasi</span>
-                <span>Koordinasi tim</span>
-                <span>Tanggung jawab</span>
+                <motion.span whileHover={shouldReduceMotion ? undefined : { y: -3, scale: 1.04 }}>Komunikasi</motion.span>
+                <motion.span whileHover={shouldReduceMotion ? undefined : { y: -3, scale: 1.04 }}>Kolaborasi</motion.span>
+                <motion.span whileHover={shouldReduceMotion ? undefined : { y: -3, scale: 1.04 }}>Koordinasi tim</motion.span>
+                <motion.span whileHover={shouldReduceMotion ? undefined : { y: -3, scale: 1.04 }}>Tanggung jawab</motion.span>
               </div>
             </div>
           </div>
