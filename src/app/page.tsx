@@ -526,6 +526,7 @@ export default function Home() {
           aria-label="Foto portrait pemilik portfolio"
           initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
+          whileHover={shouldReduceMotion ? undefined : { y: -5, rotate: 0.5 }}
           transition={{ duration: 0.8, delay: 0.12 }}
         >
           <Image
@@ -566,14 +567,17 @@ export default function Home() {
         </Reveal>
         <div className="filter-row" role="group" aria-label="Filter kategori karya">
           {filters.map((filter) => (
-            <button
+            <motion.button
               key={filter}
               className={`filter-chip${activeFilter === filter ? " is-active" : ""}`}
               aria-pressed={activeFilter === filter}
               onClick={() => setActiveFilter(filter)}
+              whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
+              transition={{ type: "spring", stiffness: 420, damping: 26 }}
             >
               {filter}<span>{filter === "Semua" ? projects.length : projects.filter((project) => project.categories.includes(filter)).length}</span>
-            </button>
+            </motion.button>
           ))}
           <span className="filter-hint"><MoveUpRight size={13} /> Pilih kategori</span>
         </div>
@@ -586,6 +590,8 @@ export default function Home() {
                 layout
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
+                whileHover={shouldReduceMotion ? undefined : { y: -5, rotate: index % 2 === 0 ? -0.35 : 0.35 }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.985 }}
                 viewport={{ once: true, amount: 0.15 }}
                 exit={shouldReduceMotion ? undefined : { opacity: 0, y: 8 }}
                 transition={{ duration: 0.25, delay: index * 0.04 }}
@@ -655,6 +661,8 @@ export default function Home() {
                 key={item.slug}
                 initial={shouldReduceMotion ? false : { opacity: 0, x: -14 }}
                 whileInView={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }}
+                whileHover={shouldReduceMotion ? undefined : { y: -4 }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
                 viewport={{ once: true, amount: 0.35 }}
                 transition={{ duration: 0.4, delay: index * 0.055, ease: "easeOut" }}
               >
@@ -715,21 +723,21 @@ export default function Home() {
           </Reveal>
         </div>
         <div className="about-facts">
-          <article className="about-fact">
+          <motion.article className="about-fact" whileHover={shouldReduceMotion ? undefined : { x: 5 }}>
             <span className="eyebrow section-eyebrow">PENDIDIKAN</span>
             <h3>Mahasiswa Sistem Informasi</h3>
             <p>Menempuh pendidikan di bidang Sistem Informasi dengan mempelajari teknologi, proses bisnis, dan pengembangan sistem digital.</p>
-          </article>
-          <article className="about-fact">
+          </motion.article>
+          <motion.article className="about-fact" whileHover={shouldReduceMotion ? undefined : { x: 5 }}>
             <span className="eyebrow section-eyebrow">FOKUS KARIER</span>
             <h3>Pengembangan web & aplikasi</h3>
             <p>Mengembangkan kemampuan dalam pembuatan website, aplikasi, database, dan analisis data untuk membangun solusi digital.</p>
-          </article>
-          <article className="about-fact">
+          </motion.article>
+          <motion.article className="about-fact" whileHover={shouldReduceMotion ? undefined : { x: 5 }}>
             <span className="eyebrow section-eyebrow">TUJUAN</span>
             <h3>Berkembang di Bidang IT</h3>
             <p>Terus meningkatkan keterampilan teknis, mengembangkan proyek nyata, dan memperoleh pengalaman untuk berkontribusi dalam dunia teknologi informasi.</p>
-          </article>
+          </motion.article>
         </div>
         <section className="about-skills" aria-labelledby="about-skills-title">
           <div className="about-skills-heading">
@@ -739,11 +747,17 @@ export default function Home() {
           </div>
           <div className="skills-grid">
             {skills.map((skill) => (
-              <article className="skill-card" key={skill.name}>
+              <motion.article
+                className="skill-card"
+                key={skill.name}
+                whileHover={shouldReduceMotion ? undefined : { y: -5, rotate: -1 }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 360, damping: 24 }}
+              >
                 <span className={`skill-mark skill-mark-${skill.style}`} aria-hidden="true">{skill.mark}</span>
                 <span className="skill-name">{skill.name}</span>
                 <span className="skill-group">{skill.group}</span>
-              </article>
+              </motion.article>
             ))}
           </div>
           <div className="skill-focus">
