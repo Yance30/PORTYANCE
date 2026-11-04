@@ -961,11 +961,20 @@ export default function Home() {
             style={{ pointerEvents: introVisible ? "auto" : "none" }}
             onPointerMove={handleIntroPointerMove}
             onPointerLeave={resetIntroPointer}
-            initial={{ y: 0 }}
-            exit={shouldReduceMotion ? { opacity: 0 } : { y: "-100%" }}
-            transition={{ duration: shouldReduceMotion ? 0.15 : 0.4, ease: [0.76, 0, 0.24, 1] }}
+            initial={shouldReduceMotion ? false : { opacity: 1, scale: 1 }}
+            exit={shouldReduceMotion
+              ? { opacity: 0 }
+              : { opacity: 0, scale: 1.08, rotateX: -8, y: "-8vh", filter: "blur(12px)" }}
+            transition={{ duration: shouldReduceMotion ? 0.15 : 0.78, ease: [0.76, 0, 0.24, 1] }}
           >
             <motion.div className="intro-grid" style={{ x: introGridX, y: introGridY }} aria-hidden="true" />
+            <div className="intro-world" aria-hidden="true">
+              <span className="intro-world-ring intro-world-ring-back" />
+              <span className="intro-world-ring intro-world-ring-front" />
+              <span className="intro-world-core" />
+              <span className="intro-world-sweep" />
+              <i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i />
+            </div>
             <div className="intro-topline">
               <span>PORTYANCE <i>®</i></span>
               <span>INDEPENDENT DIGITAL PORTFOLIO</span>
