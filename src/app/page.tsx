@@ -294,6 +294,70 @@ function CursorEffects({
   );
 }
 
+function HeroArtwork({ shouldReduceMotion }: { shouldReduceMotion: boolean | null }) {
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const rotateX = useSpring(pointerX, { stiffness: 160, damping: 22, mass: 0.5 });
+  const rotateY = useSpring(pointerY, { stiffness: 160, damping: 22, mass: 0.5 });
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (shouldReduceMotion || event.pointerType !== "mouse") return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width;
+    const y = (event.clientY - bounds.top) / bounds.height;
+    pointerX.set((0.5 - y) * 12);
+    pointerY.set((x - 0.5) * 14);
+  };
+
+  const resetTilt = () => {
+    pointerX.set(0);
+    pointerY.set(0);
+  };
+
+  return (
+    <motion.div
+      className="hero-art hero-art-3d"
+      aria-label="Foto portrait pemilik portfolio"
+      initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.94 }}
+      animate={{ opacity: 1, scale: 1 }}
+      style={shouldReduceMotion ? undefined : {
+        rotateX,
+        rotateY,
+        transformPerspective: 1100,
+      }}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={resetTilt}
+      transition={{ duration: 0.8, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <div className="hero-art-orbit hero-art-orbit-back" aria-hidden="true" />
+      <div className="hero-art-orbit hero-art-orbit-front" aria-hidden="true" />
+      <Image
+        className="portrait-image"
+        src="/yance-portrait.png"
+        alt="Portrait pemilik portfolio"
+        fill
+        priority
+        sizes="(max-width: 640px) 100vw, (max-width: 900px) 45vw, 460px"
+        draggable={false}
+      />
+      <div className="portrait-shade" />
+      <div className="portrait-glint" aria-hidden="true" />
+      <div className="hero-float-card hero-float-code" aria-hidden="true">
+        <span><i /> LIVE PREVIEW</span>
+        <b>&lt;build /&gt;</b>
+        <small>Ide jadi pengalaman digital</small>
+      </div>
+      <div className="hero-float-card hero-float-stack" aria-hidden="true">
+        <span className="hero-stack-marks"><i>JS</i><i>Py</i><i>UI</i></span>
+        <b>Digital maker</b>
+        <small>Web · Data · Mobile</small>
+      </div>
+      <span className="portrait-index"><Asterisk size={13} /> PORTFOLIO / 2026</span>
+      <span className="portrait-caption">DESIGN <i>×</i> DEVELOPMENT</span>
+    </motion.div>
+  );
+}
+
 export default function Home() {
   const [introVisible, setIntroVisible] = useState(true);
   const introSkipRef = useRef<HTMLButtonElement>(null);
@@ -386,6 +450,7 @@ export default function Home() {
                 className="intro-emblem"
                 initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.7, rotate: -12 }}
                 animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                whileHover={shouldReduceMotion ? undefined : { rotateX: 12, rotateY: -14, z: 24 }}
                 transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
               >
                 <span className="intro-orbit intro-orbit-outer" />
@@ -441,10 +506,16 @@ export default function Home() {
 
       <main inert={introVisible}>
       <header className="site-header">
-        <button className="wordmark" onClick={() => navigateToPage("beranda")} aria-label="Portyance, ke beranda">
+        <motion.button
+          className="wordmark"
+          onClick={() => navigateToPage("beranda")}
+          aria-label="Portyance, ke beranda"
+          whileHover={shouldReduceMotion ? undefined : { x: 2 }}
+          whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+        >
           <span className="wordmark-icon">P<span>.</span></span>
           <span>PORTYANCE<small>PORTOFOLIO DIGITAL</small></span>
-        </button>
+        </motion.button>
         <div className="header-page-context" aria-live="polite">
           <span className="header-page-count">0{activePageIndex + 1}<i>/</i>0{navigation.length}</span>
           <span className="header-page-divider" aria-hidden="true" />
@@ -461,16 +532,24 @@ export default function Home() {
             </motion.span>
           </AnimatePresence>
         </div>
-        <button className="header-cta" onClick={() => navigateToPage("kontak")}>Hubungi saya <ArrowUpRight size={15} /></button>
-        <button
+        <motion.button
+          className="header-cta"
+          onClick={() => navigateToPage("kontak")}
+          whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+          whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+        >
+          Hubungi saya <ArrowUpRight size={15} />
+        </motion.button>
+        <motion.button
           className="menu-toggle"
           aria-label={menuOpen ? "Tutup menu" : "Buka menu"}
           aria-expanded={menuOpen}
           aria-controls="mobile-navigation"
           onClick={() => setMenuOpen((open) => !open)}
+          whileTap={shouldReduceMotion ? undefined : { scale: 0.9, rotate: menuOpen ? -8 : 8 }}
         >
           {menuOpen ? <X size={21} /> : <Menu size={21} />}
-        </button>
+        </motion.button>
       </header>
 
       <AnimatePresence>
@@ -484,14 +563,25 @@ export default function Home() {
             exit={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
           >
             {navigation.map(([label, page], index) => (
-              <button
+              <motion.button
                 key={page}
                 className={activePage === page ? "is-current" : ""}
                 aria-current={activePage === page ? "page" : undefined}
                 onClick={() => navigateToPage(page)}
+                initial={shouldReduceMotion ? false : { opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={shouldReduceMotion ? undefined : { opacity: 0, x: 12 }}
+                transition={{ duration: 0.2, delay: shouldReduceMotion ? 0 : index * 0.045 }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
               >
-                <span>0{index + 1}</span>{label}<ArrowUpRight size={18} />
-              </button>
+                <span>0{index + 1}</span>{label}
+                <motion.span
+                  aria-hidden="true"
+                  whileHover={shouldReduceMotion ? undefined : { x: 3, y: -3 }}
+                >
+                  <ArrowUpRight size={18} />
+                </motion.span>
+              </motion.button>
             ))}
           </motion.nav>
         )}
@@ -521,28 +611,7 @@ export default function Home() {
           </div>
         </motion.div>
 
-        <motion.div
-          className="hero-art"
-          aria-label="Foto portrait pemilik portfolio"
-          initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          whileHover={shouldReduceMotion ? undefined : { y: -5, rotate: 0.5 }}
-          transition={{ duration: 0.8, delay: 0.12 }}
-        >
-          <Image
-            className="portrait-image"
-            src="/yance-portrait.png"
-            alt="Portrait pemilik portfolio"
-            fill
-            priority
-            sizes="(max-width: 640px) 100vw, (max-width: 900px) 45vw, 460px"
-            draggable={false}
-          />
-          <div className="portrait-shade" />
-          <div className="portrait-glint" aria-hidden="true" />
-          <span className="portrait-index"><Asterisk size={13} /> PORTFOLIO / 2026</span>
-          <span className="portrait-caption">DESIGN <i>×</i> DEVELOPMENT</span>
-        </motion.div>
+        <HeroArtwork shouldReduceMotion={shouldReduceMotion} />
         <button className="scroll-cue" onClick={() => navigateToPage("karya")}><ArrowDownRight size={14} /> LIHAT KARYA</button>
       </section>
 
@@ -661,7 +730,7 @@ export default function Home() {
                 key={item.slug}
                 initial={shouldReduceMotion ? false : { opacity: 0, x: -14 }}
                 whileInView={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }}
-                whileHover={shouldReduceMotion ? undefined : { y: -4 }}
+                whileHover={shouldReduceMotion ? undefined : { y: -5, rotateX: 2 }}
                 whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
                 viewport={{ once: true, amount: 0.35 }}
                 transition={{ duration: 0.4, delay: index * 0.055, ease: "easeOut" }}
@@ -723,17 +792,38 @@ export default function Home() {
           </Reveal>
         </div>
         <div className="about-facts">
-          <motion.article className="about-fact" whileHover={shouldReduceMotion ? undefined : { x: 5 }}>
+          <motion.article
+            className="about-fact"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+            whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+            whileHover={shouldReduceMotion ? undefined : { x: 5, y: -4, rotateY: -3, rotateX: 2 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{ duration: 0.35 }}
+          >
             <span className="eyebrow section-eyebrow">PENDIDIKAN</span>
             <h3>Mahasiswa Sistem Informasi</h3>
             <p>Menempuh pendidikan di bidang Sistem Informasi dengan mempelajari teknologi, proses bisnis, dan pengembangan sistem digital.</p>
           </motion.article>
-          <motion.article className="about-fact" whileHover={shouldReduceMotion ? undefined : { x: 5 }}>
+          <motion.article
+            className="about-fact"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+            whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+            whileHover={shouldReduceMotion ? undefined : { x: 5, y: -4, rotateY: -3, rotateX: 2 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{ duration: 0.35, delay: 0.08 }}
+          >
             <span className="eyebrow section-eyebrow">FOKUS KARIER</span>
             <h3>Pengembangan web & aplikasi</h3>
             <p>Mengembangkan kemampuan dalam pembuatan website, aplikasi, database, dan analisis data untuk membangun solusi digital.</p>
           </motion.article>
-          <motion.article className="about-fact" whileHover={shouldReduceMotion ? undefined : { x: 5 }}>
+          <motion.article
+            className="about-fact"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+            whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+            whileHover={shouldReduceMotion ? undefined : { x: 5, y: -4, rotateY: -3, rotateX: 2 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{ duration: 0.35, delay: 0.16 }}
+          >
             <span className="eyebrow section-eyebrow">TUJUAN</span>
             <h3>Berkembang di Bidang IT</h3>
             <p>Terus meningkatkan keterampilan teknis, mengembangkan proyek nyata, dan memperoleh pengalaman untuk berkontribusi dalam dunia teknologi informasi.</p>
@@ -746,13 +836,16 @@ export default function Home() {
             <p>Bahasa pemrograman, pengembangan web dan mobile, basis data, serta perangkat desain.</p>
           </div>
           <div className="skills-grid">
-            {skills.map((skill) => (
+            {skills.map((skill, index) => (
               <motion.article
                 className="skill-card"
                 key={skill.name}
-                whileHover={shouldReduceMotion ? undefined : { y: -5, rotate: -1 }}
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
+                whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+                whileHover={shouldReduceMotion ? undefined : { y: -7, rotateX: 5, rotateY: -3 }}
                 whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
-                transition={{ type: "spring", stiffness: 360, damping: 24 }}
+                viewport={{ once: true, amount: 0.25 }}
+                transition={{ type: "spring", stiffness: 360, damping: 24, delay: shouldReduceMotion ? 0 : index * 0.025 }}
               >
                 <span className={`skill-mark skill-mark-${skill.style}`} aria-hidden="true">{skill.mark}</span>
                 <span className="skill-name">{skill.name}</span>
@@ -785,17 +878,35 @@ export default function Home() {
       <section className="contact-section section-wrap portfolio-page" id="kontak" hidden={activePage !== "kontak"}>
         <div className="contact-topline"><span className="eyebrow">05 / KONTAK</span><span>MARI MULAI BERKOLABORASI</span></div>
         <div className="contact-layout">
-          <div className="contact-copy">
+          <motion.div
+            className="contact-copy"
+            initial={shouldReduceMotion ? false : { opacity: 0, x: -18 }}
+            whileInView={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }}
+            whileHover={shouldReduceMotion ? undefined : { rotateY: -2, z: 8 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.45 }}
+          >
             <h2>Mari buat sesuatu<br /><span>yang berarti.</span></h2>
             <p>Ceritakan tentang kebutuhan atau idemu. Formulir ini akan menyiapkan email di aplikasi email perangkatmu.</p>
             <div className="contact-links">
-              <a href={`mailto:${contactEmail}`}><Mail size={15} /> {contactEmail}</a>
-              <a href={contactLinks.linkedin} target="_blank" rel="noopener noreferrer"><BriefcaseBusiness size={15} /> LinkedIn <ArrowUpRight size={13} /></a>
-              <a href={contactLinks.github} target="_blank" rel="noopener noreferrer"><Code2 size={15} /> GitHub <ArrowUpRight size={13} /></a>
+              <motion.a href={`mailto:${contactEmail}`} whileHover={shouldReduceMotion ? undefined : { x: 5 }}>
+                <Mail size={15} /> {contactEmail}
+              </motion.a>
+              <motion.a href={contactLinks.linkedin} target="_blank" rel="noopener noreferrer" whileHover={shouldReduceMotion ? undefined : { x: 5 }}>
+                <BriefcaseBusiness size={15} /> LinkedIn <ArrowUpRight size={13} />
+              </motion.a>
+              <motion.a href={contactLinks.github} target="_blank" rel="noopener noreferrer" whileHover={shouldReduceMotion ? undefined : { x: 5 }}>
+                <Code2 size={15} /> GitHub <ArrowUpRight size={13} />
+              </motion.a>
             </div>
-          </div>
-          <form
+          </motion.div>
+          <motion.form
             className="contact-form"
+            initial={shouldReduceMotion ? false : { opacity: 0, x: 18 }}
+            whileInView={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }}
+            whileHover={shouldReduceMotion ? undefined : { rotateY: 2, rotateX: -1, z: 12 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.45, delay: shouldReduceMotion ? 0 : 0.1 }}
             onSubmit={(event) => {
               event.preventDefault();
               const formData = new FormData(event.currentTarget);
@@ -814,7 +925,7 @@ export default function Home() {
             <label>Pesan<textarea name="message" rows={3} required /></label>
             <button className="button button-light" type="submit">Siapkan email <ArrowUpRight size={17} /></button>
             <p className="contact-note">Nama, email, dan pesan dapat diisi langsung. Tombol akan membuka aplikasi email dengan detail pesan yang sudah disiapkan.</p>
-          </form>
+          </motion.form>
         </div>
         <div className="contact-bottom">
           <span>PORTYANCE · PORTFOLIO</span>
@@ -834,7 +945,7 @@ export default function Home() {
               aria-current={isCurrent ? "page" : undefined}
               title={`Buka halaman ${label}`}
               onClick={() => navigateToPage(page)}
-              whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.04 }}
+              whileHover={shouldReduceMotion ? undefined : { y: -5, scale: 1.04, rotateX: 7, rotateY: index % 2 === 0 ? -4 : 4, z: 12 }}
               whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
               transition={{ type: "spring", stiffness: 420, damping: 25 }}
             >
@@ -846,7 +957,13 @@ export default function Home() {
                   aria-hidden="true"
                 />
               )}
-              <Icon size={16} strokeWidth={1.7} aria-hidden="true" />
+              <motion.span
+                className="page-nav-icon"
+                whileHover={shouldReduceMotion ? undefined : { rotate: -8, scale: 1.12 }}
+                transition={{ type: "spring", stiffness: 420, damping: 18 }}
+              >
+                <Icon size={16} strokeWidth={1.7} aria-hidden="true" />
+              </motion.span>
               <span>{label}</span>
             </motion.button>
           );
