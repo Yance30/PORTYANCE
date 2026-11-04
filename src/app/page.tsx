@@ -184,6 +184,15 @@ function playUiSound(context: AudioContext) {
   oscillator.stop(now + 0.15);
 }
 
+function updateCardSpotlight(event: React.PointerEvent<HTMLElement>) {
+  if (event.pointerType !== "mouse") return;
+  const bounds = event.currentTarget.getBoundingClientRect();
+  const x = ((event.clientX - bounds.left) / bounds.width) * 100;
+  const y = ((event.clientY - bounds.top) / bounds.height) * 100;
+  event.currentTarget.style.setProperty("--spotlight-x", `${x}%`);
+  event.currentTarget.style.setProperty("--spotlight-y", `${y}%`);
+}
+
 function ProjectVisual({ project }: { project: Project }) {
   return (
     <div className={`project-visual visual-${project.visual}`} aria-hidden="true">
@@ -339,6 +348,7 @@ function HeroArtwork({
   shouldReduceMotion: boolean | null;
   scrollOffset: MotionValue<number>;
 }) {
+  const worldCanvasRef = useRef<HTMLCanvasElement>(null);
   const pointerX = useMotionValue(0);
   const pointerY = useMotionValue(0);
   const rotateX = useSpring(pointerX, { stiffness: 160, damping: 22, mass: 0.5 });
@@ -348,6 +358,173 @@ function HeroArtwork({
   const cardX = useTransform(rotateY, [-7, 7], [18, -18]);
   const cardY = useTransform(rotateX, [-6, 6], [-12, 12]);
   const scrollY = useTransform(scrollOffset, [0, 100], [0, -26]);
+
+  useEffect(() => {
+    const canvas = worldCanvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return;
+
+    let elapsed = 0;
+    let previousTime: number | null = null;
+    let frameId = 0;
+    let isVisible = false;
+    let viewportWidth = 0;
+    let viewportHeight = 0;
+    const isReducedMotion = shouldReduceMotion === true;
+    const mobile = window.matchMedia("(max-width: 640px)").matches;
+    const stars = Array.from({ length: mobile ? 28 : 54 }, (_, index) => ({
+      x: Math.sin(index * 127.1) * 0.48,
+      y: Math.sin(index * 311.7) * 0.48,
+      z: Math.sin(index * 74.7) * 210,
+      phase: index * 2.4,
+    }));
+
+    const draw = () => {
+      const width = viewportWidth;
+      const height = viewportHeight;
+      if (!width || !height) return;
+      context.clearRect(0, 0, width, height);
+      const centerX = width * 0.56;
+      const centerY = height * 0.49;
+      const baseRadius = Math.min(width * 0.47, height * 0.46);
+      const focalLength = Math.min(width, height) * 1.9;
+
+      const project = (x: number, y: number, z: number) => {
+        const depth = focalLength / (focalLength + z);
+        return [centerX + x * depth, centerY + y * depth] as const;
+      };
+
+      stars.forEach((star) => {
+        const drift = isReducedMotion ? 0 : elapsed;
+        const [x, y] = project(
+          star.x * width + Math.sin(star.phase + drift * 0.12) * 10,
+          star.y * height + Math.cos(star.phase + drift * 0.1) * 8,
+          star.z,
+        );
+        const shimmer = 0.16 + (Math.sin(star.phase + drift * 0.8) + 1) * 0.18;
+        context.fillStyle = `rgba(245, 219, 198, ${shimmer})`;
+        context.beginPath();
+        context.arc(x, y, 0.8 + shimmer * 1.3, 0, Math.PI * 2);
+        context.fill();
+      });
+
+      for (let ring = 0; ring < 3; ring += 1) {
+        const radius = baseRadius * (1 - ring * 0.14);
+        const rotation = (isReducedMotion ? 0 : elapsed * (ring % 2 ? -0.13 : 0.1)) + ring * 1.7;
+        const tilt = 0.48 + ring * 0.22;
+        const points: Array<readonly [number, number]> = [];
+
+        for (let step = 0; step <= 160; step += 1) {
+          const angle = (step / 160) * Math.PI * 2;
+          const circleX = Math.cos(angle) * radius;
+          const circleY = Math.sin(angle) * radius;
+          const rotatedX = circleX * Math.cos(rotation) - circleY * Math.sin(rotation);
+          const rotatedY = circleX * Math.sin(rotation) + circleY * Math.cos(rotation);
+          const tiltedY = rotatedY * Math.cos(tilt);
+          const depth = rotatedY * Math.sin(tilt);
+          points.push(project(rotatedX, tiltedY, depth));
+        }
+
+        context.beginPath();
+        points.forEach(([x, y], index) => {
+          if (index === 0) context.moveTo(x, y);
+          else context.lineTo(x, y);
+        });
+        context.closePath();
+        context.strokeStyle = ring === 1 ? "rgba(228, 173, 133, .2)" : "rgba(245, 241, 233, .12)";
+        context.lineWidth = ring === 0 ? 1.1 : 0.75;
+        context.shadowBlur = ring === 1 ? 18 : 10;
+        context.shadowColor = "rgba(228, 173, 133, .36)";
+        context.stroke();
+        context.shadowBlur = 0;
+
+        context.save();
+        context.setLineDash([2, 15 + ring * 5]);
+        context.lineDashOffset = isReducedMotion ? 0 : -elapsed * (ring % 2 ? -8 : 8);
+        context.strokeStyle = "rgba(245, 205, 174, .52)";
+        context.lineWidth = 1.3;
+        context.stroke();
+        context.restore();
+
+        const nodeAngle = (isReducedMotion ? 0 : elapsed * (ring % 2 ? -0.13 : 0.1)) + ring * 1.7 + 0.8;
+        const node = points[Math.round((nodeAngle / (Math.PI * 2)) * 160) % 160];
+        if (node) {
+          context.beginPath();
+          context.arc(node[0], node[1], 2.2, 0, Math.PI * 2);
+          context.fillStyle = "rgba(255, 224, 201, .92)";
+          context.shadowBlur = 12;
+          context.shadowColor = "rgba(228, 173, 133, .85)";
+          context.fill();
+          context.shadowBlur = 0;
+        }
+      }
+
+      const halo = context.createRadialGradient(centerX, centerY, 1, centerX, centerY, baseRadius * 0.82);
+      halo.addColorStop(0, "rgba(228, 173, 133, .09)");
+      halo.addColorStop(0.52, "rgba(228, 173, 133, .035)");
+      halo.addColorStop(1, "rgba(228, 173, 133, 0)");
+      context.fillStyle = halo;
+      context.beginPath();
+      context.arc(centerX, centerY, baseRadius * 0.82, 0, Math.PI * 2);
+      context.fill();
+    };
+
+    const resize = () => {
+      const bounds = canvas.getBoundingClientRect();
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, mobile ? 1 : 1.5);
+      viewportWidth = bounds.width;
+      viewportHeight = bounds.height;
+      canvas.width = Math.round(bounds.width * pixelRatio);
+      canvas.height = Math.round(bounds.height * pixelRatio);
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      draw();
+    };
+
+    const animate = (time: number) => {
+      if (previousTime !== null) elapsed += Math.min((time - previousTime) / 1000, 0.05);
+      previousTime = time;
+      draw();
+      if (!isReducedMotion && isVisible && document.visibilityState === "visible") {
+        frameId = window.requestAnimationFrame(animate);
+      }
+    };
+
+    const startAnimation = () => {
+      if (isReducedMotion || !isVisible || document.visibilityState !== "visible" || frameId) return;
+      previousTime = null;
+      frameId = window.requestAnimationFrame(animate);
+    };
+
+    const stopAnimation = () => {
+      window.cancelAnimationFrame(frameId);
+      frameId = 0;
+      previousTime = null;
+    };
+
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(canvas);
+    resize();
+
+    const intersectionObserver = new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting;
+      if (isVisible) startAnimation();
+      else stopAnimation();
+    });
+    intersectionObserver.observe(canvas);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") startAnimation();
+      else stopAnimation();
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      stopAnimation();
+      resizeObserver.disconnect();
+      intersectionObserver.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [shouldReduceMotion]);
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (shouldReduceMotion || event.pointerType !== "mouse") return;
@@ -378,6 +555,7 @@ function HeroArtwork({
       onPointerLeave={resetTilt}
       transition={{ duration: 0.8, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
     >
+      <canvas className="hero-world-canvas" ref={worldCanvasRef} aria-hidden="true" />
       <div className="hero-art-orbit hero-art-orbit-back" aria-hidden="true" />
       <div className="hero-art-orbit hero-art-orbit-front" aria-hidden="true" />
       <motion.div
@@ -431,6 +609,10 @@ export default function Home() {
   const shouldReduceMotion = useReducedMotionPreference();
   const pageProgress = useMotionValue(0);
   const heroScrollOffset = useMotionValue(0);
+  const scenePointerX = useMotionValue(0);
+  const scenePointerY = useMotionValue(0);
+  const sceneRotateX = useSpring(scenePointerY, { stiffness: 70, damping: 24, mass: 0.8 });
+  const sceneRotateY = useSpring(scenePointerX, { stiffness: 70, damping: 24, mass: 0.8 });
   const audioContextRef = useRef<AudioContext | null>(null);
   const introPointerX = useMotionValue(0);
   const introPointerY = useMotionValue(0);
@@ -490,6 +672,20 @@ export default function Home() {
     const motionScale = shouldReduceMotion ? 0 : 1;
     element.style.setProperty("--scroll-back", `${-12 * progress * motionScale}px`);
     element.style.setProperty("--scroll-front", `${7 * progress * motionScale}px`);
+  };
+
+  const handleScenePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (shouldReduceMotion || event.pointerType !== "mouse") return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width;
+    const y = (event.clientY - bounds.top) / bounds.height;
+    scenePointerX.set((x - 0.5) * 3);
+    scenePointerY.set((0.5 - y) * 2);
+  };
+
+  const resetScenePointer = () => {
+    scenePointerX.set(0);
+    scenePointerY.set(0);
   };
 
   const dismissIntro = useCallback(() => {
@@ -762,7 +958,9 @@ export default function Home() {
 
       <motion.div
         key={activePage}
-        className="portfolio-scene"
+        className="scene-transition"
+        data-scene={activePage}
+        data-travel={travelDirection}
         initial={shouldReduceMotion ? false : {
           opacity: 0,
           scale: 0.94,
@@ -774,6 +972,19 @@ export default function Home() {
         transition={{ duration: shouldReduceMotion ? 0 : 0.72, ease: [0.16, 1, 0.3, 1] }}
         style={{ transformPerspective: 1400 }}
       >
+      <motion.div
+        className="portfolio-scene"
+        style={shouldReduceMotion ? undefined : {
+          transformPerspective: 1400,
+          rotateX: sceneRotateX,
+          rotateY: sceneRotateY,
+        }}
+        onPointerMove={handleScenePointerMove}
+        onPointerLeave={resetScenePointer}
+      >
+      <div className="scene-atmosphere" aria-hidden="true">
+        <i /><i /><i /><i /><i /><i />
+      </div>
       <section
         className="hero section-wrap portfolio-page"
         id="beranda"
@@ -852,7 +1063,9 @@ export default function Home() {
                   rotateY: index % 2 === 0 ? -4 : 4,
                   z: 16,
                 }}
-                whileTap={shouldReduceMotion ? undefined : { scale: 0.985 }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.985, rotateX: 1.5, rotateY: -1.5 }}
+                data-card-spotlight
+                onPointerMove={updateCardSpotlight}
                 viewport={{ once: true, amount: 0.15 }}
                 exit={shouldReduceMotion ? undefined : { opacity: 0, y: 8 }}
                 transition={{ type: "spring", stiffness: 260, damping: 24, delay: index * 0.04 }}
@@ -924,7 +1137,9 @@ export default function Home() {
                 initial={shouldReduceMotion ? false : { opacity: 0, x: -14 }}
                 whileInView={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }}
                 whileHover={shouldReduceMotion ? undefined : { y: -5, rotateX: 2 }}
-                whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.99, rotateX: 1.5, rotateY: -1.5 }}
+                data-card-spotlight
+                onPointerMove={updateCardSpotlight}
                 viewport={{ once: true, amount: 0.35 }}
                 transition={{ duration: 0.4, delay: index * 0.055, ease: "easeOut" }}
               >
@@ -990,6 +1205,9 @@ export default function Home() {
             initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
             whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
             whileHover={shouldReduceMotion ? undefined : { x: 5, y: -4, rotateY: -3, rotateX: 2 }}
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.99, rotateX: 1.5 }}
+            data-card-spotlight
+            onPointerMove={updateCardSpotlight}
             viewport={{ once: true, amount: 0.35 }}
             transition={{ duration: 0.35 }}
           >
@@ -1002,6 +1220,9 @@ export default function Home() {
             initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
             whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
             whileHover={shouldReduceMotion ? undefined : { x: 5, y: -4, rotateY: -3, rotateX: 2 }}
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.99, rotateX: 1.5 }}
+            data-card-spotlight
+            onPointerMove={updateCardSpotlight}
             viewport={{ once: true, amount: 0.35 }}
             transition={{ duration: 0.35, delay: 0.08 }}
           >
@@ -1014,6 +1235,9 @@ export default function Home() {
             initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
             whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
             whileHover={shouldReduceMotion ? undefined : { x: 5, y: -4, rotateY: -3, rotateX: 2 }}
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.99, rotateX: 1.5 }}
+            data-card-spotlight
+            onPointerMove={updateCardSpotlight}
             viewport={{ once: true, amount: 0.35 }}
             transition={{ duration: 0.35, delay: 0.16 }}
           >
@@ -1036,7 +1260,9 @@ export default function Home() {
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
                 whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
                 whileHover={shouldReduceMotion ? undefined : { y: -7, rotateX: 5, rotateY: -3 }}
-                whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.97, rotateX: 1.5, rotateY: -1.5 }}
+                data-card-spotlight
+                onPointerMove={updateCardSpotlight}
                 viewport={{ once: true, amount: 0.25 }}
                 transition={{ type: "spring", stiffness: 360, damping: 24, delay: shouldReduceMotion ? 0 : index * 0.025 }}
               >
@@ -1098,6 +1324,9 @@ export default function Home() {
             initial={shouldReduceMotion ? false : { opacity: 0, x: 18 }}
             whileInView={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }}
             whileHover={shouldReduceMotion ? undefined : { rotateY: 2, rotateX: -1, z: 12 }}
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.995, rotateX: -1 }}
+            data-card-spotlight
+            onPointerMove={updateCardSpotlight}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.45, delay: shouldReduceMotion ? 0 : 0.1 }}
             onSubmit={(event) => {
@@ -1125,6 +1354,7 @@ export default function Home() {
           <button onClick={() => navigateToPage("beranda")}>Kembali ke beranda <ArrowRight size={14} /></button>
         </div>
       </section>
+      </motion.div>
       </motion.div>
 
       <nav className="page-controls" aria-label="Navigasi halaman">
