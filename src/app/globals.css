@@ -61,24 +61,36 @@ main { position: relative; z-index: 1; height: 100svh; min-height: 0; overflow: 
   transition: color .2s, border-color .2s, background .2s;
 }
 .sound-toggle:hover, .sound-toggle.is-enabled { border-color: var(--accent); color: var(--accent-strong); }
-.music-volume {
-  width: 76px;
-  height: 24px;
-  accent-color: var(--accent-strong);
-  cursor: pointer;
-}
-.music-error {
+.music-player {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  width: max-content;
-  max-width: min(250px, 70vw);
-  padding: 8px 10px;
-  border: 1px solid rgba(228, 173, 133, .32);
-  background: #171412;
-  color: #e4ad85;
+  z-index: 30;
+  width: min(320px, 82vw);
+  overflow: hidden;
+  border: 1px solid rgba(228, 173, 133, .42);
+  border-radius: 6px;
+  background: #11100f;
+  box-shadow: 0 16px 42px rgba(0, 0, 0, .48);
+}
+.music-player iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  background: #11100f;
+}
+.music-player a {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-top: 1px solid rgba(245, 241, 233, .12);
+  color: var(--accent-strong);
   font-size: 11px;
 }
+.music-player a:hover { color: var(--white); }
 .menu-toggle { color: #eee; cursor: pointer; }
 .mobile-nav button { color: #eee; text-align: left; background: transparent; cursor: pointer; }
 .mobile-nav button.is-current { color: #fff; background: rgba(255,255,255,.06); }
@@ -658,7 +670,7 @@ main { position: relative; z-index: 1; height: 100svh; min-height: 0; overflow: 
   .sound-toggle { min-width: 36px; width: 36px; min-height: 36px; padding: 0; }
   .sound-toggle span { display: none; }
   .music-control { gap: 5px; }
-  .music-volume { width: 54px; }
+  .music-player { width: min(280px, 82vw); }
   .mobile-nav { top: 66px; padding-inline: 20px; max-height: calc(100svh - 186px); }
   .hero { min-height: 0; padding-top: 12px; padding-bottom: 16px; display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
   .eyebrow { font-size: 12px; }
