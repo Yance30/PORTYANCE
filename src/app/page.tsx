@@ -48,6 +48,11 @@ const projects = [
     previewTitle: "TOKOPEDIA ANALYTICS",
     previewHeading: "Ulasan produk",
     previewSubtitle: "Dataset 2019 · Analisis interaktif",
+    caseStudy: {
+      challenge: "Ulasan produk perlu ditinjau dari berbagai kategori, rating, dan sentimen agar polanya mudah dipahami.",
+      approach: "Menyusun filter dan visualisasi interaktif menggunakan Python, Streamlit, Pandas, dan Plotly.",
+      outcome: "Dashboard analitik yang memungkinkan pengunjung mengeksplorasi ulasan dengan filter dan visualisasi.",
+    },
   },
   {
     name: "Tandur",
@@ -64,6 +69,11 @@ const projects = [
     previewTitle: "TANDUR / AKAD SALAM",
     previewHeading: "Tumbuh bersama",
     previewSubtitle: "Perangkat kerja KSPPS / BMT",
+    caseStudy: {
+      challenge: "Alur perangkat kerja akad salam untuk KSPPS/BMT perlu disajikan dalam antarmuka yang mudah dijelajahi.",
+      approach: "Membuat prototipe antarmuka web. Data yang ditampilkan bersifat ilustratif; prototipe belum memakai backend atau autentikasi nyata.",
+      outcome: "Prototipe alur kerja yang dapat ditinjau melalui demo dan pratinjau halaman masuk.",
+    },
   },
   {
     name: "JALA Fraud Analytics",
@@ -79,6 +89,11 @@ const projects = [
     previewTitle: "JALA / FRAUD ANALYTICS",
     previewHeading: "Tinjauan klaim",
     previewSubtitle: "Indikasi risiko · Data sintetis",
+    caseStudy: {
+      challenge: "Pemeriksaan klaim membutuhkan cara untuk membantu memprioritaskan kasus yang perlu ditinjau.",
+      approach: "Membangun prototipe analitik dengan fitur graf dan model deteksi menggunakan data sintetis.",
+      outcome: "Dashboard untuk mengeksplorasi indikasi risiko dan membantu prioritisasi pemeriksaan; data bukan data klaim nyata.",
+    },
   },
   {
     name: "ExploreLocal",
@@ -93,6 +108,11 @@ const projects = [
     previewTitle: "EXPLORELOCAL / UMKM",
     previewHeading: "UMKM lokal",
     previewSubtitle: "Promosi · Peta · Jelajahi",
+    caseStudy: {
+      challenge: "Pengguna memerlukan cara untuk menemukan UMKM lokal, promosi, dan lokasi dalam satu aplikasi.",
+      approach: "Mengembangkan aplikasi Android dengan Kotlin dan Jetpack Compose, serta integrasi Supabase dan osmdroid.",
+      outcome: "Aplikasi untuk menjelajahi UMKM, melihat promosi dan lokasi, serta menggunakan alur autentikasi.",
+    },
   },
   {
     name: "NyaperGO",
@@ -108,6 +128,11 @@ const projects = [
     previewTitle: "NYAPERGO / PESAN MAKANAN",
     previewHeading: "Menu favoritmu",
     previewSubtitle: "Menu · Cart · Delivery",
+    caseStudy: {
+      challenge: "Pemesanan makanan perlu menyatukan penelusuran menu, pencarian, keranjang, akun, dan lokasi.",
+      approach: "Membangun pengalaman website dan aplikasi menggunakan Laravel, PHP, Blade, dan Tailwind CSS.",
+      outcome: "Alur pemesanan yang mencakup katalog menu, pencarian, keranjang, akun, dan pengelolaan lokasi.",
+    },
   },
 ];
 
@@ -216,6 +241,58 @@ function Reveal({
     >
       {children}
     </motion.div>
+  );
+}
+
+function ProjectJourney({
+  project,
+  shouldReduceMotion,
+}: {
+  project: Project;
+  shouldReduceMotion: boolean;
+}) {
+  const [progress, setProgress] = useState(0);
+  const steps = [
+    { title: "Tantangan", detail: project.caseStudy.challenge },
+    { title: "Pendekatan", detail: project.caseStudy.approach },
+    { title: "Hasil", detail: project.caseStudy.outcome },
+  ];
+
+  const updateProgress = (event: React.UIEvent<HTMLDivElement>) => {
+    const element = event.currentTarget;
+    const scrollableDistance = element.scrollHeight - element.clientHeight;
+    setProgress(scrollableDistance > 0 ? element.scrollTop / scrollableDistance : 1);
+  };
+
+  return (
+    <div className="project-journey" onScroll={updateProgress}>
+      <div
+        className="project-journey-progress"
+        role="progressbar"
+        aria-label={`Progres studi kasus ${project.name}`}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(progress * 100)}
+      >
+        <span style={{ transform: `scaleY(${progress})` }} />
+      </div>
+      <ol className="project-journey-steps" aria-label="Tahapan studi kasus">
+        {steps.map((step, index) => (
+          <motion.li
+            key={step.title}
+            initial={shouldReduceMotion ? false : { opacity: 0, x: 12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.35, delay: shouldReduceMotion ? 0 : index * 0.12 }}
+          >
+            <span className="project-journey-index">0{index + 1}</span>
+            <div>
+              <h4>{step.title}</h4>
+              <p>{step.detail}</p>
+            </div>
+          </motion.li>
+        ))}
+      </ol>
+    </div>
   );
 }
 
@@ -1020,6 +1097,7 @@ export default function Home() {
   const [travelDirection, setTravelDirection] = useState<"forward" | "backward">("forward");
   const [activeFilter, setActiveFilter] = useState<(typeof filters)[number]>("Semua");
   const [focusedProject, setFocusedProject] = useState<number | null>(null);
+  const [expandedProject, setExpandedProject] = useState<Project | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [musicVolume, setMusicVolume] = useState(0.3);
@@ -1051,6 +1129,7 @@ export default function Home() {
       window.history.pushState(null, "", `#${page}`);
     }
     setActivePage(page);
+    if (page !== "karya") setExpandedProject(null);
     setMenuOpen(false);
     heroScrollOffset.set(0);
     window.scrollTo({ top: 0, behavior: shouldReduceMotion ? "auto" : "smooth" });
@@ -1082,6 +1161,14 @@ export default function Home() {
     setMusicVolume(volume);
     if (musicRef.current) musicRef.current.volume = volume;
   };
+
+  useEffect(() => {
+    if (!expandedProject) return;
+    document.getElementById(`project-focus-${projects.indexOf(expandedProject)}`)?.scrollIntoView({
+      behavior: shouldReduceMotion ? "auto" : "smooth",
+      block: "nearest",
+    });
+  }, [expandedProject, shouldReduceMotion]);
 
   const handleIntroPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (shouldReduceMotion || event.pointerType !== "mouse") return;
@@ -1449,14 +1536,15 @@ export default function Home() {
         className="scene-transition"
         initial={shouldReduceMotion ? false : {
           opacity: 0,
-          filter: "blur(10px)",
-          scale: 0.88,
-          rotateX: 8,
-          rotateY: travelDirection === "forward" ? -16 : 16,
-          z: -260,
+          filter: "blur(4px)",
+          scale: 0.97,
+          rotateX: 3,
+          rotateY: travelDirection === "forward" ? -5 : 5,
+          x: travelDirection === "forward" ? 22 : -22,
+          z: -80,
         }}
-        animate={{ opacity: 1, filter: "blur(0px)", scale: 1, rotateX: 0, rotateY: 0, z: 0 }}
-        transition={{ duration: shouldReduceMotion ? 0 : 0.95, ease: [0.16, 1, 0.3, 1] }}
+        animate={{ opacity: 1, filter: "blur(0px)", scale: 1, rotateX: 0, rotateY: 0, x: 0, z: 0 }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.72, ease: [0.2, 0.8, 0.2, 1] }}
         style={{ transformPerspective: 1400 }}
       >
       <motion.div
@@ -1525,7 +1613,10 @@ export default function Home() {
               key={filter}
               className={`filter-chip${activeFilter === filter ? " is-active" : ""}`}
               aria-pressed={activeFilter === filter}
-              onClick={() => setActiveFilter(filter)}
+              onClick={() => {
+                setActiveFilter(filter);
+                setExpandedProject(null);
+              }}
               whileHover={shouldReduceMotion ? undefined : { y: -2 }}
               whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
               transition={{ type: "spring", stiffness: 420, damping: 26 }}
@@ -1592,6 +1683,16 @@ export default function Home() {
                         </Link>
                       )}
                     </div>
+                    <button
+                      className="project-focus-trigger"
+                      type="button"
+                      aria-expanded={expandedProject?.name === project.name}
+                      aria-controls={`project-focus-${projects.indexOf(project)}`}
+                      onClick={() => setExpandedProject((current) => current?.name === project.name ? null : project)}
+                    >
+                      {expandedProject?.name === project.name ? "Tutup studi kasus" : "Jelajahi studi kasus"}
+                      <ArrowUpRight size={13} />
+                    </button>
                   </div>
                   <div className="project-meta"><span>{project.type}</span><span>{project.year}</span></div>
                 </div>
@@ -1599,6 +1700,61 @@ export default function Home() {
             ))}
           </AnimatePresence>
         </motion.div>
+        <AnimatePresence initial={false}>
+          {expandedProject && visibleProjects.includes(expandedProject) && (
+            <motion.article
+              id={`project-focus-${projects.indexOf(expandedProject)}`}
+              className="project-focus-panel"
+              key={expandedProject.name}
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 18, scale: 0.985 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={shouldReduceMotion ? undefined : { opacity: 0, y: -10, scale: 0.99 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.42, ease: [0.2, 0.8, 0.2, 1] }}
+              aria-label={`Studi kasus ${expandedProject.name}`}
+            >
+              <div className="project-focus-preview">
+                <ProjectVisual project={expandedProject} />
+                <span className="project-label">STUDI KASUS · {expandedProject.year}</span>
+              </div>
+              <div className="project-focus-content">
+                <div className="project-focus-heading">
+                  <div>
+                    <span className="eyebrow">01 / GAMBARAN PROYEK</span>
+                    <h3>{expandedProject.name}</h3>
+                  </div>
+                  <button
+                    className="project-focus-close"
+                    type="button"
+                    aria-label={`Tutup studi kasus ${expandedProject.name}`}
+                    onClick={() => setExpandedProject(null)}
+                  >
+                    <X size={17} />
+                  </button>
+                </div>
+                <p>{expandedProject.description}</p>
+                <ProjectJourney project={expandedProject} shouldReduceMotion={shouldReduceMotion} />
+                <div className="project-stack" aria-label={`Teknologi ${expandedProject.name}`}>
+                  {expandedProject.stack.map((technology) => <span key={technology}>{technology}</span>)}
+                </div>
+                <div className="project-links">
+                  <a href={expandedProject.github} target="_blank" rel="noopener noreferrer">
+                    <Code2 size={13} /> Lihat kode <ArrowUpRight size={12} />
+                  </a>
+                  {expandedProject.demo && (
+                    <a href={expandedProject.demo} target="_blank" rel="noopener noreferrer">
+                      Lihat demo <ArrowUpRight size={12} />
+                    </a>
+                  )}
+                  {"loginPreview" in expandedProject && expandedProject.loginPreview && (
+                    <Link href={expandedProject.loginPreview}>
+                      <LockKeyhole size={13} /> Pratinjau masuk <ArrowUpRight size={12} />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </motion.article>
+          )}
+        </AnimatePresence>
         {visibleProjects.length === 0 && (
           <div className="project-empty" role="status">
             <Layers3 size={22} strokeWidth={1.4} />
@@ -1835,7 +1991,7 @@ export default function Home() {
           initial={shouldReduceMotion ? false : { opacity: 0, y: -14 }}
           whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.55 }}
+          transition={{ duration: 0.55, delay: shouldReduceMotion ? 0 : 0.08 }}
         >
           <span className="eyebrow">05 / KONTAK</span><span>MARI MULAI BERKOLABORASI</span>
         </motion.div>
@@ -1846,7 +2002,7 @@ export default function Home() {
             whileInView={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }}
             whileHover={shouldReduceMotion ? undefined : { rotateY: -2, z: 8 }}
             viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.45 }}
+            transition={{ duration: 0.45, delay: shouldReduceMotion ? 0 : 0.16 }}
           >
             <h2>Mari buat sesuatu<br /><span>yang berarti.</span></h2>
             <p>Ceritakan tentang kebutuhan atau idemu. Formulir ini akan menyiapkan email di aplikasi email perangkatmu.</p>
@@ -1871,7 +2027,7 @@ export default function Home() {
             data-card-spotlight
             onPointerMove={updateCardSpotlight}
             viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.45, delay: shouldReduceMotion ? 0 : 0.1 }}
+            transition={{ duration: 0.45, delay: shouldReduceMotion ? 0 : 0.28 }}
             onSubmit={(event) => {
               event.preventDefault();
               const formData = new FormData(event.currentTarget);
@@ -1892,10 +2048,16 @@ export default function Home() {
             <p className="contact-note">Nama, email, dan pesan dapat diisi langsung. Tombol akan membuka aplikasi email dengan detail pesan yang sudah disiapkan.</p>
           </motion.form>
         </div>
-        <div className="contact-bottom">
+        <motion.div
+          className="contact-bottom"
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+          whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.4, delay: shouldReduceMotion ? 0 : 0.4 }}
+        >
           <span>PORTYANCE · PORTFOLIO</span>
           <button onClick={() => navigateToPage("beranda")}>Kembali ke beranda <ArrowRight size={14} /></button>
-        </div>
+        </motion.div>
       </section>
       </motion.div>
       </motion.div>
