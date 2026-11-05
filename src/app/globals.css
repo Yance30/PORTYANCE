@@ -42,6 +42,7 @@ main { position: relative; z-index: 1; height: 100svh; min-height: 0; overflow: 
 .site-header { position: sticky !important; top: 0; }
 .wordmark { padding: 0; border: 0; background: transparent; text-align: left; cursor: pointer; }
 .header-cta { border: 1px solid #454543; background: transparent; cursor: pointer; white-space: nowrap; }
+.music-control { position: relative; display: flex; align-items: center; gap: 8px; }
 .sound-toggle {
   min-width: 56px;
   min-height: 38px;
@@ -60,6 +61,24 @@ main { position: relative; z-index: 1; height: 100svh; min-height: 0; overflow: 
   transition: color .2s, border-color .2s, background .2s;
 }
 .sound-toggle:hover, .sound-toggle.is-enabled { border-color: var(--accent); color: var(--accent-strong); }
+.music-volume {
+  width: 76px;
+  height: 24px;
+  accent-color: var(--accent-strong);
+  cursor: pointer;
+}
+.music-error {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: max-content;
+  max-width: min(250px, 70vw);
+  padding: 8px 10px;
+  border: 1px solid rgba(228, 173, 133, .32);
+  background: #171412;
+  color: #e4ad85;
+  font-size: 11px;
+}
 .menu-toggle { color: #eee; cursor: pointer; }
 .mobile-nav button { color: #eee; text-align: left; background: transparent; cursor: pointer; }
 .mobile-nav button.is-current { color: #fff; background: rgba(255,255,255,.06); }
@@ -638,6 +657,8 @@ main { position: relative; z-index: 1; height: 100svh; min-height: 0; overflow: 
   .wordmark-icon { width: 29px; height: 29px; }
   .sound-toggle { min-width: 36px; width: 36px; min-height: 36px; padding: 0; }
   .sound-toggle span { display: none; }
+  .music-control { gap: 5px; }
+  .music-volume { width: 54px; }
   .mobile-nav { top: 66px; padding-inline: 20px; max-height: calc(100svh - 186px); }
   .hero { min-height: 0; padding-top: 12px; padding-bottom: 16px; display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
   .eyebrow { font-size: 12px; }

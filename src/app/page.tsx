@@ -168,21 +168,37 @@ function useReducedMotionPreference() {
   );
 }
 
-function playUiSound(context: AudioContext) {
-  const oscillator = context.createOscillator();
-  const gain = context.createGain();
+function startAmbientMusic(context: AudioContext, volume: number) {
+  const masterGain = context.createGain();
   const now = context.currentTime;
+  const notes = [130.81, 196, 261.63, 329.63, 392];
+  const oscillators: OscillatorNode[] = [];
+  let remainingVoices = notes.length;
 
-  oscillator.type = "sine";
-  oscillator.frequency.setValueAtTime(560, now);
-  oscillator.frequency.exponentialRampToValueAtTime(760, now + 0.08);
-  gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.exponentialRampToValueAtTime(0.035, now + 0.015);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
-  oscillator.connect(gain);
-  gain.connect(context.destination);
-  oscillator.start(now);
-  oscillator.stop(now + 0.15);
+  masterGain.gain.setValueAtTime(0.0001, now);
+  masterGain.gain.exponentialRampToValueAtTime(Math.max(volume * 0.065, 0.0001), now + 3);
+  masterGain.connect(context.destination);
+
+  notes.forEach((frequency, index) => {
+    const oscillator = context.createOscillator();
+    const voiceGain = context.createGain();
+    oscillator.type = index < 2 ? "sine" : "triangle";
+    oscillator.frequency.value = frequency;
+    oscillator.detune.value = index % 2 === 0 ? -3 : 3;
+    voiceGain.gain.value = index === 0 ? 0.24 : 0.11;
+    oscillator.connect(voiceGain);
+    voiceGain.connect(masterGain);
+    oscillator.start(now + index * 0.35);
+    oscillator.onended = () => {
+      oscillator.disconnect();
+      voiceGain.disconnect();
+      remainingVoices -= 1;
+      if (remainingVoices === 0) masterGain.disconnect();
+    };
+    oscillators.push(oscillator);
+  });
+
+  return { masterGain, oscillators };
 }
 
 function updateCardSpotlight(event: React.PointerEvent<HTMLElement>) {
@@ -800,7 +816,9 @@ export default function Home() {
   const [travelDirection, setTravelDirection] = useState<"forward" | "backward">("forward");
   const [activeFilter, setActiveFilter] = useState<(typeof filters)[number]>("Semua");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [musicEnabled, setMusicEnabled] = useState(false);
+  const [musicVolume, setMusicVolume] = useState(0.35);
+  const [musicError, setMusicError] = useState("");
   const shouldReduceMotion = useReducedMotionPreference();
   const pageProgress = useMotionValue(0);
   const heroScrollOffset = useMotionValue(0);
@@ -809,6 +827,7 @@ export default function Home() {
   const sceneRotateX = useSpring(scenePointerY, { stiffness: 70, damping: 24, mass: 0.8 });
   const sceneRotateY = useSpring(scenePointerX, { stiffness: 70, damping: 24, mass: 0.8 });
   const audioContextRef = useRef<AudioContext | null>(null);
+  const ambientMusicRef = useRef<ReturnType<typeof startAmbientMusic> | null>(null);
   const introPointerX = useMotionValue(0);
   const introPointerY = useMotionValue(0);
   const introRotateX = useSpring(introPointerY, { stiffness: 90, damping: 24 });
@@ -823,7 +842,6 @@ export default function Home() {
     if (!navigation.some(([, id]) => id === page)) return;
     const nextPageIndex = navigation.findIndex(([, id]) => id === page);
     setTravelDirection(nextPageIndex >= activePageIndex ? "forward" : "backward");
-    if (soundEnabled && audioContextRef.current) playUiSound(audioContextRef.current);
     if (window.location.hash !== `#${page}`) {
       window.history.pushState(null, "", `#${page}`);
     }
@@ -833,18 +851,49 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: shouldReduceMotion ? "auto" : "smooth" });
   };
 
-  const toggleSound = () => {
-    if (soundEnabled) {
-      setSoundEnabled(false);
+  const toggleMusic = async () => {
+    if (musicEnabled) {
+      const context = audioContextRef.current;
+      const music = ambientMusicRef.current;
+      if (context && music) {
+        const now = context.currentTime;
+        music.masterGain.gain.cancelScheduledValues(now);
+        music.masterGain.gain.setTargetAtTime(0.0001, now, 0.3);
+        music.oscillators.forEach((oscillator) => oscillator.stop(now + 1.2));
+        ambientMusicRef.current = null;
+      }
+      setMusicEnabled(false);
       return;
     }
 
-    const context = audioContextRef.current ?? new AudioContext();
-    audioContextRef.current = context;
-    if (context.state === "suspended") void context.resume();
-    setSoundEnabled(true);
-    playUiSound(context);
+    try {
+      const context = audioContextRef.current ?? new AudioContext();
+      audioContextRef.current = context;
+      if (context.state === "suspended") await context.resume();
+      ambientMusicRef.current = startAmbientMusic(context, musicVolume);
+      setMusicError("");
+      setMusicEnabled(true);
+    } catch (error) {
+      console.error("Unable to start the relaxation music.", error);
+      setMusicError("Musik tidak dapat diputar di browser ini.");
+      setMusicEnabled(false);
+    }
   };
+
+  const updateMusicVolume = (volume: number) => {
+    setMusicVolume(volume);
+    const context = audioContextRef.current;
+    const music = ambientMusicRef.current;
+    if (!context || !music) return;
+    music.masterGain.gain.setTargetAtTime(Math.max(volume * 0.065, 0.0001), context.currentTime, 0.12);
+  };
+
+  useEffect(() => () => {
+    const context = audioContextRef.current;
+    if (!context) return;
+    ambientMusicRef.current?.oscillators.forEach((oscillator) => oscillator.stop());
+    void context.close();
+  }, []);
 
   const handleIntroPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (shouldReduceMotion || event.pointerType !== "mouse") return;
@@ -1100,18 +1149,33 @@ export default function Home() {
         >
           Hubungi saya <ArrowUpRight size={15} />
         </motion.button>
-        <motion.button
-          className={`sound-toggle${soundEnabled ? " is-enabled" : ""}`}
-          type="button"
-          aria-label={soundEnabled ? "Matikan efek suara" : "Nyalakan efek suara"}
-          aria-pressed={soundEnabled}
-          title={soundEnabled ? "Efek suara aktif" : "Efek suara mati"}
-          onClick={toggleSound}
-          whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
-        >
-          {soundEnabled ? <Volume2 size={17} /> : <VolumeX size={17} />}
-          <span>SFX</span>
-        </motion.button>
+        <div className={`music-control${musicEnabled ? " is-enabled" : ""}`}>
+          <motion.button
+            className={`sound-toggle${musicEnabled ? " is-enabled" : ""}`}
+            type="button"
+            aria-label={musicEnabled ? "Matikan musik relaksasi" : "Nyalakan musik relaksasi"}
+            aria-pressed={musicEnabled}
+            title={musicEnabled ? "Musik relaksasi aktif" : "Musik relaksasi mati"}
+            onClick={() => void toggleMusic()}
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
+          >
+            {musicEnabled ? <Volume2 size={17} /> : <VolumeX size={17} />}
+            <span>Musik</span>
+          </motion.button>
+          {musicEnabled && (
+            <input
+              className="music-volume"
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={musicVolume}
+              aria-label="Volume musik relaksasi"
+              onChange={(event) => updateMusicVolume(Number(event.currentTarget.value))}
+            />
+          )}
+          {musicError && <span className="music-error" role="status">{musicError}</span>}
+        </div>
         <motion.button
           className="menu-toggle"
           aria-label={menuOpen ? "Tutup menu" : "Buka menu"}
