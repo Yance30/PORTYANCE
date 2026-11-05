@@ -1022,6 +1022,8 @@ export default function Home() {
   const [focusedProject, setFocusedProject] = useState<number | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [musicEnabled, setMusicEnabled] = useState(false);
+  const [musicVolume, setMusicVolume] = useState(0.3);
+  const [musicError, setMusicError] = useState("");
   const shouldReduceMotion = useReducedMotionPreference();
   const pageProgress = useMotionValue(0);
   const experienceProgress = useMotionValue(0);
@@ -1030,6 +1032,7 @@ export default function Home() {
   const scenePointerY = useMotionValue(0);
   const sceneRotateX = useSpring(scenePointerY, { stiffness: 70, damping: 24, mass: 0.8 });
   const sceneRotateY = useSpring(scenePointerX, { stiffness: 70, damping: 24, mass: 0.8 });
+  const musicRef = useRef<HTMLAudioElement>(null);
   const introPointerX = useMotionValue(0);
   const introPointerY = useMotionValue(0);
   const introRotateX = useSpring(introPointerY, { stiffness: 90, damping: 24 });
@@ -1053,7 +1056,32 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: shouldReduceMotion ? "auto" : "smooth" });
   };
 
-  const toggleMusic = () => setMusicEnabled((enabled) => !enabled);
+  const toggleMusic = async () => {
+    const audio = musicRef.current;
+    if (!audio) return;
+
+    if (musicEnabled) {
+      audio.pause();
+      setMusicEnabled(false);
+      return;
+    }
+
+    try {
+      audio.volume = musicVolume;
+      await audio.play();
+      setMusicError("");
+      setMusicEnabled(true);
+    } catch (error) {
+      console.error("Unable to play the selected music file.", error);
+      setMusicError("Musik tidak dapat diputar. Coba lagi.");
+      setMusicEnabled(false);
+    }
+  };
+
+  const updateMusicVolume = (volume: number) => {
+    setMusicVolume(volume);
+    if (musicRef.current) musicRef.current.volume = volume;
+  };
 
   const handleIntroPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (shouldReduceMotion || event.pointerType !== "mouse") return;
@@ -1162,6 +1190,16 @@ export default function Home() {
   return (
     <>
       <CursorEffects introVisible={introVisible} pageProgress={pageProgress} />
+      <audio
+        ref={musicRef}
+        src="/silhouette.mp3"
+        preload="none"
+        loop
+        onError={() => {
+          setMusicError("File musik tidak dapat dimuat.");
+          setMusicEnabled(false);
+        }}
+      />
       <PortfolioWorld
         activePage={activePage}
         focusedProject={focusedProject}
@@ -1325,7 +1363,7 @@ export default function Home() {
             aria-label={musicEnabled ? "Matikan musik relaksasi" : "Nyalakan musik relaksasi"}
             aria-pressed={musicEnabled}
             title={musicEnabled ? "Musik relaksasi aktif" : "Musik relaksasi mati"}
-            onClick={toggleMusic}
+            onClick={() => void toggleMusic()}
             whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
           >
             {musicEnabled ? <Volume2 size={17} /> : <VolumeX size={17} />}
@@ -1333,22 +1371,23 @@ export default function Home() {
           </motion.button>
           {musicEnabled && (
             <div className="music-player">
-              <iframe
-                src="https://www.youtube-nocookie.com/embed/dlFA0Zq1k2A?autoplay=1&controls=1&playsinline=1&rel=0"
-                title="KANA-BOON - Silhouette (YouTube)"
-                allow="autoplay; encrypted-media; picture-in-picture"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              />
-              <a
-                href="https://www.youtube.com/watch?v=dlFA0Zq1k2A"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Buka di YouTube <ArrowUpRight size={13} />
-              </a>
+              <span className="music-track-name">KANA-BOON · Silhouette</span>
+              <label className="music-volume-control">
+                <Volume2 size={15} />
+                <span>Volume</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={musicVolume}
+                  aria-label="Volume musik relaksasi"
+                  onChange={(event) => updateMusicVolume(Number(event.currentTarget.value))}
+                />
+              </label>
             </div>
           )}
+          {musicError && <span className="music-error" role="status">{musicError}</span>}
         </div>
         <motion.button
           className="menu-toggle"
