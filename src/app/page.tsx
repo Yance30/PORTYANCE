@@ -368,19 +368,40 @@ const scenePalettes: Record<string, number> = {
 
 function PortfolioWorld({
   activePage,
+  focusedProject,
+  experienceProgress,
   shouldReduceMotion,
 }: {
   activePage: string;
+  focusedProject: number | null;
+  experienceProgress: MotionValue<number>;
   shouldReduceMotion: boolean | null;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const paletteTarget = useRef(new THREE.Color(scenePalettes.beranda));
   const renderScene = useRef<(() => void) | null>(null);
+  const wakeScene = useRef<(() => void) | null>(null);
+  const sceneState = useRef({ activePage, focusedProject, experienceProgress: experienceProgress.get() });
 
   useEffect(() => {
     paletteTarget.current.setHex(scenePalettes[activePage] ?? scenePalettes.beranda);
+    sceneState.current.activePage = activePage;
     renderScene.current?.();
+    wakeScene.current?.();
   }, [activePage]);
+
+  useEffect(() => {
+    sceneState.current.focusedProject = focusedProject;
+    renderScene.current?.();
+    wakeScene.current?.();
+  }, [focusedProject]);
+
+  useEffect(() => {
+    return experienceProgress.on("change", (value) => {
+      sceneState.current.experienceProgress = value;
+      wakeScene.current?.();
+    });
+  }, [experienceProgress]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -415,6 +436,150 @@ function PortfolioWorld({
 
     const portalLight = new THREE.PointLight(scenePalettes.beranda, 24, 10, 2);
     scene.add(portalLight);
+    const stageSpacing = 12;
+    const stageCenters = Object.fromEntries(
+      navigation.map(([, page], index) => [page, index * stageSpacing]),
+    ) as Record<string, number>;
+
+    const studioFloor = new THREE.GridHelper(68, 68, 0x9a7158, 0x665d56);
+    studioFloor.position.set(stageSpacing * 2, -3.1, -3);
+    const floorMaterials = Array.isArray(studioFloor.material) ? studioFloor.material : [studioFloor.material];
+    floorMaterials.forEach((material) => {
+      material.transparent = true;
+      material.opacity = 0.16;
+      material.depthWrite = false;
+    });
+    scene.add(studioFloor);
+
+    const studioWall = new THREE.Mesh(
+      new THREE.PlaneGeometry(stageSpacing * 5.2, 14),
+      new THREE.MeshBasicMaterial({
+        color: 0x22201d,
+        transparent: true,
+        opacity: 0.16,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      }),
+    );
+    studioWall.position.set(stageSpacing * 2, 1.8, -8.5);
+    scene.add(studioWall);
+
+    const studioProps: THREE.Object3D[] = [];
+    const studioMaterials: THREE.Material[] = [];
+    const makeMaterial = (color: number, opacity = 0.24) => {
+      const material = new THREE.MeshStandardMaterial({
+        color,
+        emissive: color,
+        emissiveIntensity: 0.16,
+        metalness: 0.68,
+        roughness: 0.36,
+        transparent: true,
+        opacity,
+        depthWrite: false,
+      });
+      studioMaterials.push(material);
+      return material;
+    };
+    const addStageObject = (page: string, object: THREE.Object3D, x: number, y: number, z: number) => {
+      const center = stageCenters[page] ?? 0;
+      object.position.set(center + x, y, z);
+      object.userData.stage = page;
+      scene.add(object);
+      studioProps.push(object);
+      return object;
+    };
+
+    const desk = new THREE.Mesh(
+      new THREE.BoxGeometry(5.2, 0.12, 1.9),
+      makeMaterial(0x93745d, 0.18),
+    );
+    addStageObject("karya", desk, 0, -1.7, -3.4);
+    const projectScreens = projects.map((project, index) => {
+      const group = new THREE.Group();
+      const frame = new THREE.Mesh(
+        new THREE.BoxGeometry(1.48, 0.94, 0.08),
+        makeMaterial(0xcab29b, 0.36),
+      );
+      const screen = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.33, 0.78),
+        makeMaterial(index % 2 === 0 ? 0x789187 : 0x98745d, 0.35),
+      );
+      screen.position.z = 0.052;
+      const chartBars = Array.from({ length: 4 }, (_, barIndex) => {
+        const height = 0.12 + ((index + barIndex * 3) % 4) * 0.09;
+        const bar = new THREE.Mesh(
+          new THREE.BoxGeometry(0.1, height, 0.018),
+          makeMaterial(barIndex % 2 ? 0xb5c4ba : 0xe4ad85, 0.56),
+        );
+        bar.position.set(-0.43 + barIndex * 0.16, -0.2 + height / 2, 0.074);
+        bar.scale.y = 0.04;
+        group.add(bar);
+        return bar;
+      });
+      group.add(frame, screen);
+      const targetX = (index - 2) * 1.55;
+      const targetY = -0.3 + (index % 2) * 0.4;
+      addStageObject("karya", group, targetX + (index % 2 ? -0.7 : 0.7), targetY - 0.9, -4.1);
+      return { group, chartBars, targetX, targetY, index };
+    });
+
+    const aboutFrames = [-1.25, 0, 1.25].map((x, index) => {
+      const frame = new THREE.Mesh(
+        new THREE.BoxGeometry(0.82, 1.5 + (index % 2) * 0.36, 0.08),
+        makeMaterial(index === 1 ? 0xc3a88d : 0x8c8173, 0.26),
+      );
+      addStageObject("tentang", frame, x, 0.1, -4.8);
+      return frame;
+    });
+
+    const timelineGroup = new THREE.Group();
+    const timelineBase = new THREE.Mesh(
+      new THREE.BoxGeometry(5.2, 0.045, 0.045),
+      makeMaterial(0xc9c1b6, 0.25),
+    );
+    timelineGroup.add(timelineBase);
+    const timelineProgressMaterial = new THREE.MeshBasicMaterial({
+      color: scenePalettes.pengalaman,
+      transparent: true,
+      opacity: 0.86,
+      depthWrite: false,
+    });
+    studioMaterials.push(timelineProgressMaterial);
+    const timelineProgress = new THREE.Mesh(
+      new THREE.BoxGeometry(5.2, 0.075, 0.075),
+      timelineProgressMaterial,
+    );
+    timelineProgress.position.x = -2.6;
+    timelineProgress.geometry.translate(2.6, 0, 0);
+    timelineGroup.add(timelineProgress);
+    const timelineNodes = experiences.map((_, index) => {
+      const node = new THREE.Mesh(
+        new THREE.IcosahedronGeometry(0.11, 1),
+        makeMaterial(0xe4ad85, 0.7),
+      );
+      node.position.x = (index / Math.max(experiences.length - 1, 1) - 0.5) * 4.7;
+      timelineGroup.add(node);
+      return node;
+    });
+    addStageObject("pengalaman", timelineGroup, 0, 0.2, -4.5);
+
+    const contactFrame = new THREE.Group();
+    const contactFrameMaterial = makeMaterial(0xabb3e7, 0.3);
+    [-1.2, 1.2].forEach((x) => {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, 3.3, 0.12), contactFrameMaterial);
+      post.position.set(x, 0.05, 0);
+      contactFrame.add(post);
+    });
+    const contactLintel = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.12, 0.12), contactFrameMaterial);
+    contactLintel.position.y = 1.68;
+    contactFrame.add(contactLintel);
+    const contactFloor = new THREE.Mesh(
+      new THREE.BoxGeometry(3.2, 0.04, 1.8),
+      makeMaterial(0xabb3e7, 0.2),
+    );
+    contactFloor.position.y = -1.62;
+    contactFrame.add(contactFloor);
+    addStageObject("kontak", contactFrame, 0, 0, -4.6);
 
     const portal = new THREE.Group();
     scene.add(portal);
@@ -560,7 +725,7 @@ function PortfolioWorld({
       const halfWidth = halfHeight * (width / height);
       for (let index = 0; index < starCount; index += 1) {
         const offset = index * 3;
-        starPositions[offset] = (randomValue(index + 1) * 2 - 1) * halfWidth * 1.45;
+        starPositions[offset] = (randomValue(index + 1) * 2 - 1) * (stageSpacing * 2 + halfWidth);
         starPositions[offset + 1] = (randomValue(index + 201) * 2 - 1) * halfHeight * 1.4;
         starPositions[offset + 2] = -18 + randomValue(index + 401) * 24;
       }
@@ -589,6 +754,14 @@ function PortfolioWorld({
     let isVisible = false;
     let viewportWidth = 0;
     let viewportHeight = 0;
+    let activeCameraX = 0;
+    let activeCameraY = 0.1;
+    let activeCameraZ = 10;
+    let activeLookAtX = 0;
+    let activeLookAtY = 0;
+    let activeLookAtZ = -2;
+    let lastInteraction = performance.now();
+    const projectLookAtTarget = new THREE.Vector3();
 
     const resize = () => {
       const bounds = canvas.getBoundingClientRect();
@@ -645,10 +818,61 @@ function PortfolioWorld({
       }
       positions.needsUpdate = true;
       stars.rotation.z = Math.sin(elapsed * 0.04) * 0.018;
-      targetCamera.set(pointer.x * 0.28, pointer.y * 0.18);
-      camera.position.x += (targetCamera.x - camera.position.x) * 0.025;
-      camera.position.y += (targetCamera.y - camera.position.y) * 0.025;
-      camera.lookAt(0, 0, -2);
+      const current = sceneState.current;
+      const stageX = stageCenters[current.activePage] ?? 0;
+      const focus = current.activePage === "karya" && current.focusedProject !== null;
+      const reducedMotionBlend = isReducedMotion ? 1 : 0.045;
+      activeCameraX += (stageX - activeCameraX) * reducedMotionBlend;
+      activeCameraY += ((current.activePage === "pengalaman" ? 0.3 : 0.1) - activeCameraY) * reducedMotionBlend;
+      activeCameraZ += ((focus ? 8.7 : 10) - activeCameraZ) * reducedMotionBlend;
+      activeLookAtX += (stageX - activeLookAtX) * reducedMotionBlend;
+      activeLookAtY += ((focus ? 0.25 : 0) - activeLookAtY) * reducedMotionBlend;
+      activeLookAtZ += ((focus ? -4.2 : -2) - activeLookAtZ) * reducedMotionBlend;
+      const targetFov = focus ? 35 : 42;
+      camera.fov += (targetFov - camera.fov) * reducedMotionBlend;
+      camera.updateProjectionMatrix();
+      targetCamera.set(isReducedMotion ? 0 : pointer.x * 0.28, isReducedMotion ? 0 : pointer.y * 0.18);
+      camera.position.x += (activeCameraX + targetCamera.x - camera.position.x) * (isReducedMotion ? 1 : 0.045);
+      camera.position.y += (activeCameraY + targetCamera.y - camera.position.y) * (isReducedMotion ? 1 : 0.045);
+      camera.position.z += (activeCameraZ - camera.position.z) * reducedMotionBlend;
+      projectLookAtTarget.set(activeLookAtX, activeLookAtY, activeLookAtZ);
+      camera.lookAt(projectLookAtTarget);
+      studioProps.forEach((object) => {
+        const page = object.userData.stage as string | undefined;
+        if (page) object.visible = page === current.activePage;
+      });
+      projectScreens.forEach(({ group, chartBars, targetX, targetY, index }) => {
+        const selected = focus && current.focusedProject === index;
+        const assembly = current.activePage === "karya" ? 1 : 0;
+        const targetXPosition = targetX + (assembly ? 0 : (index % 2 ? -0.7 : 0.7));
+        const targetYPosition = targetY + (selected ? 0.56 : 0) - (assembly ? 0 : 0.9);
+        const assemblyBlend = isReducedMotion ? 1 : assembly ? 0.085 : 0.16;
+        group.position.x += (stageCenters.karya + targetXPosition - group.position.x) * assemblyBlend;
+        group.position.y += (targetYPosition - group.position.y) * assemblyBlend;
+        group.rotation.y += ((selected ? -0.1 : 0) - group.rotation.y) * 0.12;
+        group.scale.setScalar(selected ? 1.1 : 1);
+        chartBars.forEach((bar) => {
+          bar.scale.y += ((assembly ? 1 : 0.04) - bar.scale.y) * assemblyBlend;
+        });
+        group.children.forEach((part) => {
+          if (part instanceof THREE.Mesh) {
+            const material = part.material as THREE.MeshStandardMaterial;
+            material.emissiveIntensity += ((selected ? 0.55 : 0.16) - material.emissiveIntensity) * 0.12;
+          }
+        });
+      });
+      aboutFrames.forEach((frame, index) => {
+        frame.rotation.y = Math.sin(elapsed * 0.22 + index) * 0.06;
+      });
+      const timelineAmount = Math.max(0.02, current.experienceProgress);
+      timelineProgress.scale.x = timelineAmount;
+      timelineNodes.forEach((node, index) => {
+        const progress = index / Math.max(timelineNodes.length - 1, 1);
+        const material = node.material as THREE.MeshStandardMaterial;
+        material.emissiveIntensity = progress <= current.experienceProgress ? 0.8 : 0.12;
+        node.scale.setScalar(progress <= current.experienceProgress ? 1.25 : 0.8);
+      });
+      contactFrame.rotation.y = Math.sin(elapsed * 0.18) * 0.04;
       renderer.render(scene, camera);
     };
     renderScene.current = render;
@@ -657,6 +881,10 @@ function PortfolioWorld({
       if (previousTime !== null) elapsed += Math.min((time - previousTime) / 1000, 0.05);
       previousTime = time;
       render();
+      if (time - lastInteraction > 12000) {
+        frameId = 0;
+        return;
+      }
       if (!isReducedMotion && isVisible && document.visibilityState === "visible") {
         frameId = window.requestAnimationFrame(animate);
       }
@@ -665,6 +893,7 @@ function PortfolioWorld({
     const startAnimation = () => {
       if (isReducedMotion || !isVisible || document.visibilityState !== "visible" || frameId) return;
       previousTime = null;
+      lastInteraction = performance.now();
       frameId = window.requestAnimationFrame(animate);
     };
 
@@ -677,6 +906,8 @@ function PortfolioWorld({
     const handlePointerMove = (event: PointerEvent) => {
       if (isReducedMotion || event.pointerType !== "mouse") return;
       pointer.set((event.clientX / window.innerWidth - 0.5) * 2, (0.5 - event.clientY / window.innerHeight) * 2);
+      lastInteraction = performance.now();
+      startAnimation();
     };
 
     const resizeObserver = new ResizeObserver(resize);
@@ -695,6 +926,10 @@ function PortfolioWorld({
       if (document.visibilityState === "visible") startAnimation();
       else stopAnimation();
     };
+    wakeScene.current = () => {
+      lastInteraction = performance.now();
+      startAnimation();
+    };
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
@@ -703,6 +938,7 @@ function PortfolioWorld({
       intersectionObserver.disconnect();
       window.removeEventListener("pointermove", handlePointerMove);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      wakeScene.current = null;
       renderScene.current = null;
       const geometries = new Set<THREE.BufferGeometry>();
       const disposedMaterials = new Set<THREE.Material>();
@@ -713,6 +949,7 @@ function PortfolioWorld({
           objectMaterials.forEach((material) => disposedMaterials.add(material));
         }
       });
+      studioMaterials.forEach((material) => material.dispose());
       geometries.forEach((geometry) => geometry.dispose());
       disposedMaterials.forEach((material) => material.dispose());
       ringMaterial.dispose();
@@ -720,7 +957,7 @@ function PortfolioWorld({
     };
   }, [shouldReduceMotion]);
 
-  return <canvas className="portfolio-world-canvas" ref={canvasRef} aria-hidden="true" />;
+  return <canvas className="portfolio-world-canvas" data-scene={activePage} ref={canvasRef} aria-hidden="true" />;
 }
 
 function HeroArtwork({
@@ -815,12 +1052,14 @@ export default function Home() {
   const [activePage, setActivePage] = useState("beranda");
   const [travelDirection, setTravelDirection] = useState<"forward" | "backward">("forward");
   const [activeFilter, setActiveFilter] = useState<(typeof filters)[number]>("Semua");
+  const [focusedProject, setFocusedProject] = useState<number | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [musicVolume, setMusicVolume] = useState(0.35);
   const [musicError, setMusicError] = useState("");
   const shouldReduceMotion = useReducedMotionPreference();
   const pageProgress = useMotionValue(0);
+  const experienceProgress = useMotionValue(0);
   const heroScrollOffset = useMotionValue(0);
   const scenePointerX = useMotionValue(0);
   const scenePointerY = useMotionValue(0);
@@ -917,7 +1156,9 @@ export default function Home() {
     element.style.setProperty("--scroll-back", `${-12 * progress * motionScale}px`);
     element.style.setProperty("--scroll-front", `${7 * progress * motionScale}px`);
     if (element.id === "pengalaman") {
-      element.style.setProperty("--experience-progress", String(maxScroll > 0 ? progress : 1));
+      const nextProgress = maxScroll > 0 ? progress : 1;
+      element.style.setProperty("--experience-progress", String(nextProgress));
+      experienceProgress.set(nextProgress);
     }
   };
 
@@ -961,14 +1202,16 @@ export default function Home() {
       const scrollFraction = maxScroll > 0 ? page.scrollTop / maxScroll : 0;
       pageProgress.set((activePageIndex + scrollFraction) / navigation.length);
       if (activePage === "pengalaman") {
-        page.style.setProperty("--experience-progress", String(maxScroll > 0 ? scrollFraction : 1));
+        const nextProgress = maxScroll > 0 ? scrollFraction : 1;
+        page.style.setProperty("--experience-progress", String(nextProgress));
+        experienceProgress.set(nextProgress);
       }
     };
 
     page.addEventListener("scroll", updateProgress, { passive: true });
     updateProgress();
     return () => page.removeEventListener("scroll", updateProgress);
-  }, [activePage, activePageIndex, pageProgress]);
+  }, [activePage, activePageIndex, experienceProgress, pageProgress]);
 
   useEffect(() => {
     document.getElementById(activePage)?.scrollTo({
@@ -998,7 +1241,12 @@ export default function Home() {
   return (
     <>
       <CursorEffects introVisible={introVisible} pageProgress={pageProgress} />
-      <PortfolioWorld activePage={activePage} shouldReduceMotion={shouldReduceMotion} />
+      <PortfolioWorld
+        activePage={activePage}
+        focusedProject={focusedProject}
+        experienceProgress={experienceProgress}
+        shouldReduceMotion={shouldReduceMotion}
+      />
       <AnimatePresence>
         {introVisible && (
           <motion.div
@@ -1344,6 +1592,14 @@ export default function Home() {
                 exit={shouldReduceMotion ? undefined : { opacity: 0, y: 8 }}
                 transition={{ type: "spring", stiffness: 260, damping: 24, delay: index * 0.04 }}
                 style={shouldReduceMotion ? undefined : { transformPerspective: 1100 }}
+                onPointerEnter={() => setFocusedProject(projects.indexOf(project))}
+                onPointerLeave={() => setFocusedProject((current) => current === projects.indexOf(project) ? null : current)}
+                onFocusCapture={() => setFocusedProject(projects.indexOf(project))}
+                onBlurCapture={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget)) {
+                    setFocusedProject((current) => current === projects.indexOf(project) ? null : current);
+                  }
+                }}
               >
                 <div className="project-preview">
                   <ProjectVisual project={project} />

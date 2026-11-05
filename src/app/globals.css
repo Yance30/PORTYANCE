@@ -1765,9 +1765,14 @@ button:focus-visible, a:focus-visible { outline-color: var(--accent-strong); }
   width: 100vw;
   height: 100vh;
   pointer-events: none;
-  opacity: .52;
+  opacity: .14;
   mix-blend-mode: screen;
 }
+.portfolio-world-canvas[data-scene="beranda"] { opacity: .44; }
+.portfolio-world-canvas[data-scene="karya"] { opacity: .12; }
+.portfolio-world-canvas[data-scene="tentang"],
+.portfolio-world-canvas[data-scene="pengalaman"],
+.portfolio-world-canvas[data-scene="kontak"] { opacity: .17; }
 .scene-atmosphere {
   position: fixed;
   z-index: 0;
@@ -1835,7 +1840,8 @@ button:focus-visible, a:focus-visible { outline-color: var(--accent-strong); }
 
 @media (max-width: 640px) {
   .about-fact { box-shadow: 0 6px 14px rgba(0,0,0,.1); }
-  .portfolio-world-canvas { opacity: .34; }
+  .portfolio-world-canvas { opacity: .1; }
+  .portfolio-world-canvas[data-scene="beranda"] { opacity: .28; }
 }
 
 @media (prefers-reduced-motion: reduce) {
