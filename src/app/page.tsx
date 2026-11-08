@@ -167,6 +167,7 @@ const skills = [
   { name: "Node.js", mark: "N", group: "Web", style: "node" },
   { name: "SQL", mark: "SQL", group: "Database", style: "sql" },
   { name: "Figma", mark: "F", group: "Design", style: "figma" },
+  { name: "Power BI", mark: "BI", group: "Dashboard", style: "powerbi" },
 ];
 
 const contactEmail = "yansgrouppansi@gmail.com";
