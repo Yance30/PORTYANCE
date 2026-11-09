@@ -1985,3 +1985,30 @@ button:focus-visible, a:focus-visible { outline-color: var(--accent-strong); }
   .leadership-card { transform-style: flat; }
   .skill-card:hover, .leadership-card:hover, .about-stamp:hover { transform: none; }
 }
+
+main {
+  height: auto;
+  min-height: 100svh;
+  overflow: visible;
+  padding-bottom: 96px;
+}
+
+.portfolio-page:not([hidden]) {
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  overscroll-behavior: auto;
+}
+
+.hero.portfolio-page:not([hidden]) { height: auto; }
+.intro-strip:not([hidden]) {
+  position: relative;
+  bottom: auto;
+  height: auto;
+}
+
+#beranda, #karya, #pengalaman, #tentang, #kontak { scroll-margin-top: 88px; }
+
+@media (max-width: 640px) {
+  main { padding-bottom: 88px; }
+}

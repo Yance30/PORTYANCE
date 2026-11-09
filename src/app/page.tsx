@@ -147,15 +147,15 @@ const filters = ["Semua", "Website", "Aplikasi", "Dashboard"] as const;
 const navigation = [
   ["Beranda", "beranda"],
   ["Proyek", "karya"],
-  ["Tentang", "tentang"],
   ["Pengalaman", "pengalaman"],
+  ["Tentang", "tentang"],
   ["Kontak", "kontak"],
 ] as const;
 const navigationIcons = [
   House,
   BriefcaseBusiness,
-  UserRound,
   UsersRound,
+  UserRound,
   Mail,
 ];
 
@@ -1109,7 +1109,6 @@ export default function Home() {
   const [introVisible, setIntroVisible] = useState(true);
   const introSkipRef = useRef<HTMLButtonElement>(null);
   const [activePage, setActivePage] = useState("beranda");
-  const [travelDirection, setTravelDirection] = useState<"forward" | "backward">("forward");
   const [activeFilter, setActiveFilter] = useState<(typeof filters)[number]>("Semua");
   const [focusedProject, setFocusedProject] = useState<number | null>(null);
   const [expandedProject, setExpandedProject] = useState<Project | null>(null);
@@ -1138,16 +1137,16 @@ export default function Home() {
   );
   const navigateToPage = (page: string) => {
     if (!navigation.some(([, id]) => id === page)) return;
-    const nextPageIndex = navigation.findIndex(([, id]) => id === page);
-    setTravelDirection(nextPageIndex >= activePageIndex ? "forward" : "backward");
     if (window.location.hash !== `#${page}`) {
       window.history.pushState(null, "", `#${page}`);
     }
     setActivePage(page);
     if (page !== "karya") setExpandedProject(null);
     setMenuOpen(false);
-    heroScrollOffset.set(0);
-    window.scrollTo({ top: 0, behavior: shouldReduceMotion ? "auto" : "smooth" });
+    document.getElementById(page)?.scrollIntoView({
+      behavior: shouldReduceMotion ? "auto" : "smooth",
+      block: "start",
+    });
   };
 
   const toggleMusic = async () => {
@@ -1199,20 +1198,6 @@ export default function Home() {
     introPointerY.set(0);
   };
 
-  const handlePortfolioScroll = (event: React.UIEvent<HTMLElement>) => {
-    const element = event.currentTarget;
-    const maxScroll = element.scrollHeight - element.clientHeight;
-    const progress = maxScroll > 0 ? Math.min(element.scrollTop / maxScroll, 1) : 0;
-    const motionScale = shouldReduceMotion ? 0 : 1;
-    element.style.setProperty("--scroll-back", `${-12 * progress * motionScale}px`);
-    element.style.setProperty("--scroll-front", `${7 * progress * motionScale}px`);
-    if (element.id === "pengalaman") {
-      const nextProgress = maxScroll > 0 ? progress : 1;
-      element.style.setProperty("--experience-progress", String(nextProgress));
-      experienceProgress.set(nextProgress);
-    }
-  };
-
   const handleScenePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (shouldReduceMotion || event.pointerType !== "mouse") return;
     const bounds = event.currentTarget.getBoundingClientRect();
@@ -1245,31 +1230,50 @@ export default function Home() {
   }, [dismissIntro, introVisible, shouldReduceMotion]);
 
   useEffect(() => {
-    const page = document.getElementById(activePage);
-    if (!page) return;
+    let frame = 0;
+    const updateDocumentScroll = () => {
+      frame = 0;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      pageProgress.set(maxScroll > 0 ? window.scrollY / maxScroll : 0);
 
-    const updateProgress = () => {
-      const maxScroll = page.scrollHeight - page.clientHeight;
-      const scrollFraction = maxScroll > 0 ? page.scrollTop / maxScroll : 0;
-      pageProgress.set((activePageIndex + scrollFraction) / navigation.length);
-      if (activePage === "pengalaman") {
-        const nextProgress = maxScroll > 0 ? scrollFraction : 1;
-        page.style.setProperty("--experience-progress", String(nextProgress));
-        experienceProgress.set(nextProgress);
+      const headerHeight = document.querySelector(".site-header")?.getBoundingClientRect().height ?? 0;
+      const activeLine = window.scrollY + headerHeight + window.innerHeight * 0.28;
+      let nextPage: (typeof navigation)[number][1] = navigation[0][1];
+
+      for (const [, page] of navigation) {
+        const section = document.getElementById(page);
+        if (section && section.getBoundingClientRect().top + window.scrollY <= activeLine) {
+          nextPage = page;
+        }
+      }
+
+      setActivePage((currentPage) => currentPage === nextPage ? currentPage : nextPage);
+      if (nextPage !== "karya") setExpandedProject(null);
+
+      const hero = document.getElementById("beranda");
+      if (hero) heroScrollOffset.set(Math.min(Math.max(-hero.getBoundingClientRect().top, 0), 100));
+
+      const experience = document.getElementById("pengalaman");
+      if (experience) {
+        const sectionTop = experience.getBoundingClientRect().top + window.scrollY;
+        const progress = Math.min(Math.max((activeLine - sectionTop) / experience.offsetHeight, 0), 1);
+        experience.style.setProperty("--experience-progress", String(progress));
+        experienceProgress.set(progress);
       }
     };
+    const scheduleUpdate = () => {
+      if (!frame) frame = window.requestAnimationFrame(updateDocumentScroll);
+    };
 
-    page.addEventListener("scroll", updateProgress, { passive: true });
-    updateProgress();
-    return () => page.removeEventListener("scroll", updateProgress);
-  }, [activePage, activePageIndex, experienceProgress, pageProgress]);
-
-  useEffect(() => {
-    document.getElementById(activePage)?.scrollTo({
-      top: 0,
-      behavior: shouldReduceMotion ? "auto" : "smooth",
-    });
-  }, [activePage, shouldReduceMotion]);
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+    updateDocumentScroll();
+    return () => {
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [experienceProgress, heroScrollOffset, pageProgress]);
 
   useEffect(() => {
     const syncPageFromUrl = () => {
@@ -1277,17 +1281,26 @@ export default function Home() {
       const page = navigation.some(([, id]) => id === requestedPage)
         ? requestedPage
         : "beranda";
-      const currentIndex = navigation.findIndex(([, id]) => id === activePage);
-      const nextIndex = navigation.findIndex(([, id]) => id === page);
-      setTravelDirection(nextIndex >= currentIndex ? "forward" : "backward");
       setActivePage(page);
       setMenuOpen(false);
+      if (window.location.hash) {
+        window.requestAnimationFrame(() => {
+          document.getElementById(page)?.scrollIntoView({
+            behavior: shouldReduceMotion ? "auto" : "smooth",
+            block: "start",
+          });
+        });
+      }
     };
 
-    syncPageFromUrl();
     window.addEventListener("hashchange", syncPageFromUrl);
-    return () => window.removeEventListener("hashchange", syncPageFromUrl);
-  }, [activePage]);
+    window.addEventListener("popstate", syncPageFromUrl);
+    syncPageFromUrl();
+    return () => {
+      window.removeEventListener("hashchange", syncPageFromUrl);
+      window.removeEventListener("popstate", syncPageFromUrl);
+    };
+  }, [shouldReduceMotion]);
 
   return (
     <>
@@ -1538,24 +1551,15 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      <section className="intro-strip" aria-label="Ringkasan" hidden={activePage !== "beranda"}>
-        <div className="section-wrap intro-inner">
-          <div className="dashboard-stat"><strong>05</strong><span>PROYEK PORTOFOLIO</span></div>
-          <div className="dashboard-stat"><strong>{String(skills.length).padStart(2, "0")}</strong><span>BAHASA & TOOLS</span></div>
-          <div className="dashboard-stat"><strong>05</strong><span>PENGALAMAN ORGANISASI</span></div>
-        </div>
-      </section>
-
       <motion.div
-        key={activePage}
         className="scene-transition"
         initial={shouldReduceMotion ? false : {
           opacity: 0,
           filter: "blur(4px)",
           scale: 0.97,
           rotateX: 3,
-          rotateY: travelDirection === "forward" ? -5 : 5,
-          x: travelDirection === "forward" ? 22 : -22,
+          rotateY: -5,
+          x: 22,
           z: -80,
         }}
         animate={{ opacity: 1, filter: "blur(0px)", scale: 1, rotateX: 0, rotateY: 0, x: 0, z: 0 }}
@@ -1578,11 +1582,6 @@ export default function Home() {
       <section
         className="hero section-wrap portfolio-page"
         id="beranda"
-        hidden={activePage !== "beranda"}
-        onScroll={(event) => {
-          handlePortfolioScroll(event);
-          heroScrollOffset.set(Math.min(event.currentTarget.scrollTop, 100));
-        }}
       >
         <motion.div
           className="hero-copy"
@@ -1610,7 +1609,15 @@ export default function Home() {
         <button className="scroll-cue" onClick={() => navigateToPage("karya")}><ArrowDownRight size={14} /> LIHAT KARYA</button>
       </section>
 
-      <section className="work-section section-wrap portfolio-page" id="karya" hidden={activePage !== "karya"} onScroll={handlePortfolioScroll}>
+      <section className="intro-strip" aria-label="Ringkasan">
+        <div className="section-wrap intro-inner">
+          <div className="dashboard-stat"><strong>05</strong><span>PROYEK PORTOFOLIO</span></div>
+          <div className="dashboard-stat"><strong>{String(skills.length).padStart(2, "0")}</strong><span>BAHASA & TOOLS</span></div>
+          <div className="dashboard-stat"><strong>05</strong><span>PENGALAMAN ORGANISASI</span></div>
+        </div>
+      </section>
+
+      <section className="work-section section-wrap portfolio-page" id="karya">
         <Reveal className="section-heading">
           <>
             <div>
@@ -1778,12 +1785,12 @@ export default function Home() {
         <p className="sample-note"><Asterisk size={14} /> Ringkasan disusun dari repositori yang ditinjau. Demo tersedia untuk proyek yang memiliki tautan demo.</p>
       </section>
 
-      <section className="leadership-section portfolio-page" id="pengalaman" hidden={activePage !== "pengalaman"} onScroll={handlePortfolioScroll}>
+      <section className="leadership-section portfolio-page" id="pengalaman">
         <div className="section-wrap">
           <Reveal className="section-heading leadership-heading">
             <>
               <div>
-                <span className="eyebrow section-eyebrow">04 / PENGALAMAN ORGANISASI</span>
+                <span className="eyebrow section-eyebrow">03 / PENGALAMAN ORGANISASI</span>
                 <h2>Pengalaman<br /><span className="leadership-heading-muted">berorganisasi.</span></h2>
               </div>
               <div className="leadership-heading-aside">
@@ -1872,7 +1879,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="about-section section-wrap portfolio-page" id="tentang" hidden={activePage !== "tentang"} onScroll={handlePortfolioScroll}>
+      <section className="about-section section-wrap portfolio-page" id="tentang">
         <div className="about-profile">
           <motion.div
             className="about-stamp"
@@ -1885,7 +1892,7 @@ export default function Home() {
             <span>YANCE<br />PORTFOLIO</span>
           </motion.div>
           <Reveal className="about-content" delay={0.1}>
-            <span className="eyebrow section-eyebrow">03 / TENTANG SAYA</span>
+            <span className="eyebrow section-eyebrow">04 / TENTANG SAYA</span>
             <h2>Halo, saya Yance.</h2>
             <p>
               Saya tertarik mengembangkan aplikasi dan sistem digital yang bermanfaat.
@@ -2002,7 +2009,7 @@ export default function Home() {
         </section>
       </section>
 
-      <section className="contact-section section-wrap portfolio-page" id="kontak" hidden={activePage !== "kontak"} onScroll={handlePortfolioScroll}>
+      <section className="contact-section section-wrap portfolio-page" id="kontak">
         <motion.div
           className="contact-topline"
           initial={shouldReduceMotion ? false : { opacity: 0, y: -14 }}
