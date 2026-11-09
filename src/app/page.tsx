@@ -143,6 +143,25 @@ const projects = [
 
 type Project = (typeof projects)[number];
 
+const biStories: Record<string, { question: string; metrics: string[]; data: string; insight: string; action: string; limit: string }> = {
+  tokopedia: {
+    question: "Kategori mana yang perlu ditinjau dari sisi pengalaman pelanggan?",
+    metrics: ["Distribusi rating", "Volume ulasan", "Sentimen per kategori"],
+    data: "Ulasan produk Tokopedia tahun 2019; analisis dibatasi pada cakupan dataset.",
+    insight: "Bandingkan rating dengan volume ulasan sebelum menyimpulkan kualitas sebuah kategori.",
+    action: "Gunakan filter kategori dan sentimen untuk memilih kelompok ulasan yang perlu dibaca lebih lanjut.",
+    limit: "Data historis, bukan kondisi Tokopedia saat ini. Belum ada dampak bisnis terukur yang diklaim.",
+  },
+  jala: {
+    question: "Klaim mana yang perlu diprioritaskan untuk pemeriksaan lebih lanjut?",
+    metrics: ["Indikasi risiko", "Relasi antarklaim", "Prioritas pemeriksaan"],
+    data: "Data klaim sintetis untuk mendemonstrasikan alur analitik; bukan data pasien atau klaim nyata.",
+    insight: "Indikasi risiko adalah petunjuk untuk pemeriksaan, bukan bukti terjadinya fraud.",
+    action: "Tinjau kasus yang ditandai beserta relasinya, lalu validasi konteks sebelum membuat keputusan.",
+    limit: "Prototipe dengan data sintetis; hasil tidak membuktikan akurasi atau kesiapan penggunaan operasional.",
+  },
+};
+
 const filters = ["Semua", "Website", "Aplikasi", "Dashboard"] as const;
 const navigation = [
   ["Beranda", "beranda"],
@@ -268,9 +287,15 @@ function ProjectJourney({
 }) {
   const [progress, setProgress] = useState(0);
   const steps = [
-    { title: "Tantangan", detail: project.caseStudy.challenge },
-    { title: "Pendekatan", detail: project.caseStudy.approach },
-    { title: "Hasil", detail: project.caseStudy.outcome },
+    { title: "Masalah bisnis", detail: project.caseStudy.challenge },
+    ...(biStories[project.visual] ? [{ title: "Sumber & cakupan data", detail: biStories[project.visual].data }] : []),
+    { title: "Proses analisis & implementasi", detail: project.caseStudy.approach },
+    { title: "Hasil yang tersedia", detail: project.caseStudy.outcome },
+    ...(biStories[project.visual] ? [
+      { title: "Cara membaca insight", detail: biStories[project.visual].insight },
+      { title: "Rekomendasi penggunaan", detail: biStories[project.visual].action },
+      { title: "Batasan", detail: biStories[project.visual].limit },
+    ] : []),
   ];
 
   const updateProgress = (event: React.UIEvent<HTMLDivElement>) => {
@@ -1019,30 +1044,59 @@ function PortfolioWorld({
   return <canvas className="portfolio-world-canvas" data-scene={activePage} ref={canvasRef} aria-hidden="true" />;
 }
 
-function HeroArtwork({
-  shouldReduceMotion,
-  scrollOffset,
-}: {
-  shouldReduceMotion: boolean | null;
-  scrollOffset: MotionValue<number>;
-}) {
+function AnalyticsPreview({ shouldReduceMotion }: { shouldReduceMotion: boolean }) {
+  const [period, setPeriod] = useState<"minggu" | "bulan">("minggu");
+  const series = period === "minggu" ? [24, 32, 28, 46, 38, 54, 62] : [42, 56, 48, 72, 64, 88, 96];
+  const labels = period === "minggu" ? ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"] : ["Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt"];
+  const total = series.reduce((sum, value) => sum + value, 0);
+  return (
+    <section className="analytics-preview" aria-label="Demo dashboard penjualan dengan data ilustratif">
+      <div className="analytics-header">
+        <span><ChartNoAxesColumnIncreasing size={15} /> ANALYTICS LAB</span>
+        <span className="analytics-demo-label">DATA ILUSTRATIF</span>
+      </div>
+      <div className="analytics-toolbar">
+        <div><span className="analytics-kpi-label">Total pesanan contoh</span><strong>{total}<small>pesanan</small></strong></div>
+        <div className="analytics-period" role="group" aria-label="Rentang waktu grafik">
+          <button type="button" aria-pressed={period === "minggu"} onClick={() => setPeriod("minggu")}>7 hari</button>
+          <button type="button" aria-pressed={period === "bulan"} onClick={() => setPeriod("bulan")}>7 bulan</button>
+        </div>
+      </div>
+      <div className="analytics-chart" role="img" aria-label={`Pesanan ilustratif: ${labels.map((label, index) => `${label} ${series[index]}`).join(", ")}.`}>
+        {series.map((value, index) => (
+          <div className="analytics-column" key={index}>
+            <span className="analytics-value">{value}</span>
+            <div className="analytics-bar-track"><motion.div className="analytics-bar"
+              initial={shouldReduceMotion ? false : { scaleY: 0 }}
+              whileInView={{ scaleY: 1 }} viewport={{ once: true }}
+              animate={{ height: `${value}%` }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.45, delay: shouldReduceMotion ? 0 : index * 0.035 }}
+              style={{ height: `${value}%`, transformOrigin: "bottom" }} />
+            </div>
+            <span className="analytics-axis">{labels[index]}</span>
+          </div>
+        ))}
+      </div>
+      <p className="analytics-insight" aria-live="polite"><ArrowUpRight size={16} /><span>Puncak contoh: <strong>{labels[series.indexOf(Math.max(...series))]}</strong>, {Math.max(...series)} pesanan. Ubah rentang untuk menjelajahi data.</span></p>
+    </section>
+  );
+}
+
+function HeroArtwork({ shouldReduceMotion }: { shouldReduceMotion: boolean }) {
   const pointerX = useMotionValue(0);
   const pointerY = useMotionValue(0);
   const rotateX = useSpring(pointerX, { stiffness: 160, damping: 22, mass: 0.5 });
   const rotateY = useSpring(pointerY, { stiffness: 160, damping: 22, mass: 0.5 });
   const portraitX = useTransform(rotateY, [-7, 7], [-12, 12]);
   const portraitY = useTransform(rotateX, [-6, 6], [10, -10]);
-  const cardX = useTransform(rotateY, [-7, 7], [18, -18]);
-  const cardY = useTransform(rotateX, [-6, 6], [-12, 12]);
-  const scrollY = useTransform(scrollOffset, [0, 100], [0, -26]);
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (shouldReduceMotion || event.pointerType !== "mouse") return;
     const bounds = event.currentTarget.getBoundingClientRect();
     const x = (event.clientX - bounds.left) / bounds.width;
     const y = (event.clientY - bounds.top) / bounds.height;
-    pointerX.set((0.5 - y) * 12);
-    pointerY.set((x - 0.5) * 14);
+    pointerX.set((0.5 - y) * 4);
+    pointerY.set((x - 0.5) * 5);
   };
 
   const resetTilt = () => {
@@ -1074,33 +1128,14 @@ function HeroArtwork({
           src="/yance-portrait.png"
           alt="Portrait pemilik portfolio"
           fill
-          loading="lazy"
+          loading="eager"
           sizes="(max-width: 640px) 100vw, (max-width: 900px) 45vw, 460px"
           draggable={false}
         />
       </motion.div>
       <div className="portrait-shade" />
       <div className="portrait-glint" aria-hidden="true" />
-      <motion.div
-        className="hero-float-card hero-float-code"
-        style={shouldReduceMotion ? undefined : { x: cardX, y: cardY }}
-        aria-hidden="true"
-      >
-        <span><i /> LIVE PREVIEW</span>
-        <b>&lt;build /&gt;</b>
-        <small>Ide jadi pengalaman digital</small>
-      </motion.div>
-      <motion.div
-        className="hero-float-card hero-float-stack"
-        style={shouldReduceMotion ? undefined : { x: cardX, y: scrollY }}
-        aria-hidden="true"
-      >
-        <span className="hero-stack-marks"><i>JS</i><i>Py</i><i>UI</i></span>
-        <b>Digital maker</b>
-        <small>Web · Data · Mobile</small>
-      </motion.div>
       <span className="portrait-index"><Asterisk size={13} /> PORTFOLIO / 2026</span>
-      <span className="portrait-caption">DESIGN <i>×</i> DEVELOPMENT</span>
     </motion.div>
   );
 }
@@ -1134,7 +1169,7 @@ export default function Home() {
   const activePageIndex = navigation.findIndex(([, page]) => page === activePage);
   const visibleProjects = projects.filter(
     (project) => activeFilter === "Semua" || project.categories.includes(activeFilter),
-  );
+  ).sort((a, b) => Number(b.categories.includes("Dashboard")) - Number(a.categories.includes("Dashboard")));
   const navigateToPage = (page: string) => {
     if (!navigation.some(([, id]) => id === page)) return;
     if (window.location.hash !== `#${page}`) {
@@ -1589,9 +1624,10 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, ease: "easeOut" }}
         >
-          <h1>Yance Adhy Nata<br />Panjaitan<span className="hero-role">Mahasiswa Sistem Informasi · Pengembangan Web & Analitik Data</span></h1>
+          <span className="eyebrow hero-bi-eyebrow">DATA · DESIGN · DEVELOPMENT</span>
+          <h1>Yance Adhy Nata<br />Panjaitan<span className="hero-role">Mahasiswa Sistem Informasi · Fokus Business Intelligence & Pengembangan Web</span></h1>
           <p className="hero-description">
-            Saya merancang aplikasi web dan dashboard analitik untuk menyajikan data secara jelas dan menjawab kebutuhan bisnis.
+            Mengubah data menjadi cerita yang mudah dipahami. Saya membangun dashboard analitik dan aplikasi web untuk mengeksplorasi masalah, menemukan pola, dan mendukung keputusan bisnis.
           </p>
           <div className="hero-actions">
             <button className="button button-light" onClick={() => navigateToPage("karya")}>Lihat proyek <ArrowDownRight size={17} /></button>
@@ -1605,7 +1641,11 @@ export default function Home() {
           </div>
         </motion.div>
 
-        <HeroArtwork shouldReduceMotion={shouldReduceMotion} scrollOffset={heroScrollOffset} />
+        <div className="hero-showcase">
+          <HeroArtwork shouldReduceMotion={shouldReduceMotion} />
+          <div className="showcase-caption"><span>DESIGN <i>×</i> DEVELOPMENT</span><span>DATA WITH PURPOSE</span></div>
+          <AnalyticsPreview shouldReduceMotion={shouldReduceMotion} />
+        </div>
         <button className="scroll-cue" onClick={() => navigateToPage("karya")}><ArrowDownRight size={14} /> LIHAT KARYA</button>
       </section>
 
@@ -1623,7 +1663,7 @@ export default function Home() {
             <div>
               <span className="eyebrow section-eyebrow">02 / PROYEK PILIHAN</span>
               <h2>Karya pilihan<span className="muted-period">.</span></h2>
-              <p className="section-lead">Lima proyek dari dashboard analitik, aplikasi, hingga prototipe web.</p>
+              <p className="section-lead">Dari pertanyaan bisnis ke eksplorasi data. Jelajahi dua proyek analitik unggulan, dilanjutkan aplikasi dan prototipe web.</p>
             </div>
             <span className="work-count">2025 sampai 2026<br />05 PROYEK</span>
           </>
@@ -1651,16 +1691,13 @@ export default function Home() {
           <AnimatePresence mode="popLayout">
             {visibleProjects.map((project, index) => (
               <motion.article
-                className="project-card"
+                className={`project-card${biStories[project.visual] ? " project-card-bi" : ""}`}
                 key={project.name}
                 layout
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 whileHover={shouldReduceMotion ? undefined : {
-                  y: -7,
-                  rotateX: index % 2 === 0 ? 3 : -3,
-                  rotateY: index % 2 === 0 ? -4 : 4,
-                  z: 16,
+                  y: -4,
                 }}
                 whileTap={shouldReduceMotion ? undefined : { scale: 0.985, rotateX: 1.5, rotateY: -1.5 }}
                 data-card-spotlight
@@ -1681,11 +1718,23 @@ export default function Home() {
                 <div className="project-preview">
                   <ProjectVisual project={project} />
                   <span className="project-label">{project.label}</span>
+                  {biStories[project.visual] && <span className="preview-disclosure">Ilustrasi antarmuka</span>}
                 </div>
                 <div className="project-info">
                   <div>
                     <h3>{project.name}</h3>
                     <p>{project.description}</p>
+                    {biStories[project.visual] && (
+                      <div className="bi-project-summary">
+                        <span className="bi-summary-label">PERTANYAAN ANALISIS</span>
+                        <h4>{biStories[project.visual].question}</h4>
+                        <div className="bi-metrics">{biStories[project.visual].metrics.map((metric) => <span key={metric}>{metric}</span>)}</div>
+                        <details className="bi-insight-detail">
+                          <summary>Catatan insight <ArrowUpRight size={14} /></summary>
+                          <p>{biStories[project.visual].insight}</p>
+                        </details>
+                      </div>
+                    )}
                     <div className="project-stack" aria-label={`Teknologi ${project.name}`}>
                       {project.stack.map((technology) => <span key={technology}>{technology}</span>)}
                     </div>

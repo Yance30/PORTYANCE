@@ -11,11 +11,11 @@ const metadataBase = siteHost
 
 export const metadata: Metadata = {
   metadataBase,
-  title: "Yance Adhy Nata Panjaitan | Pengembangan Web & Dashboard Analitik",
+  title: "Yance Adhy Nata Panjaitan | Business Intelligence & Pengembangan Web",
   description:
-    "Portofolio Yance Adhy Nata Panjaitan, mahasiswa Sistem Informasi yang membangun aplikasi web dan dashboard analitik.",
+    "Portofolio Yance Adhy Nata Panjaitan, mahasiswa Sistem Informasi dengan fokus Business Intelligence, dashboard analitik, dan pengembangan web. Jelajahi proyek serta studi kasus data.",
   openGraph: {
-    title: "Yance Adhy Nata Panjaitan | Pengembangan Web & Dashboard Analitik",
+    title: "Yance Adhy Nata Panjaitan | Business Intelligence & Pengembangan Web",
     description:
       "Aplikasi web, dashboard analitik, dan pengalaman organisasi Yance Adhy Nata Panjaitan.",
     siteName: "Portyance",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Yance Adhy Nata Panjaitan | Pengembangan Web & Dashboard Analitik",
+    title: "Yance Adhy Nata Panjaitan | Business Intelligence & Pengembangan Web",
     description:
       "Portofolio aplikasi web dan dashboard analitik Yance Adhy Nata Panjaitan.",
     ...(metadataBase && { images: ["/yance-portrait.png"] }),
