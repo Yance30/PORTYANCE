@@ -2169,3 +2169,57 @@ main {
   .hero-actions .button:hover { transform: none; }
   .project-screenshot img { transition: none; }
 }
+
+/* One motion language across sections; decorative layers never capture input. */
+.animated-section { position: relative; isolation: isolate; }
+.animated-section > .section-motion-scene { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; border-radius: inherit; }
+.section-light-wash { position: absolute; inset: 0; background: radial-gradient(ellipse at 85% 35%, #d49a7318, transparent 62%); }
+.section-motion-pengalaman .section-light-wash { background: radial-gradient(ellipse at 15% 45%, #b3926f18, transparent 60%); }
+.section-motion-tentang .section-light-wash { background: radial-gradient(ellipse at 80% 35%, #91b7a817, transparent 65%); }
+.section-motion-kontak .section-light-wash { background: radial-gradient(ellipse at 50% 60%, #d49a7322, transparent 65%); }
+.section-draw-line { position: absolute; left: 0; top: 0; right: 0; height: 1px; transform-origin: left; background: linear-gradient(90deg, transparent, #d49a73b3 25%, #c8a48266 70%, transparent); }
+.section-line-art { position: absolute; width: clamp(240px, 40vw, 520px); height: auto; top: 40px; right: -45px; opacity: .22; overflow: visible; }
+.section-line-art path { fill: none; stroke: #d7ac85; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.section-motion-pengalaman .section-line-art { right: auto; left: -40px; }
+.section-motion-tentang .section-line-art path { stroke: #a9c7bb; }
+.section-motion-kontak .section-line-art { top: auto; bottom: 40px; }
+.work-section.animated-section, .about-section.animated-section, .contact-section.animated-section { padding-top: 52px; padding-bottom: 52px; }
+.leadership-section.animated-section { padding-block: 52px; }
+
+/* Blend the original transparent portrait directly into the page. */
+.hero-showcase .hero-motion-art::before { display: none; }
+.hero-showcase .hero-motion-art { background: transparent; border: 0; box-shadow: none; }
+.hero-motion-art .hero-portrait-layer { inset: 0 -2% -4%; animation: portrait-hover-drift 6s ease-in-out infinite; }
+.hero-showcase .hero-motion-art .portrait-image {
+  object-fit: contain;
+  object-position: center;
+  transform: none;
+  filter: saturate(.86) contrast(1.02);
+  -webkit-mask-image: radial-gradient(ellipse 76% 83% at 54% 29%, #000 48%, #000e 65%, transparent 99%);
+  mask-image: radial-gradient(ellipse 76% 83% at 54% 29%, #000 48%, #000e 65%, transparent 99%);
+}
+.hero-motion-art .portrait-shade { display: none; }
+.hero-motion-art .portrait-glint { opacity: .16; }
+.hero-motion-art .portrait-aurora { inset: -8% -4%; filter: blur(36px); opacity: .7; }
+.hero-motion-art .portrait-orbits { opacity: .55; transform: scale(.94); }
+.hero-motion-art[data-motion="paused"] .hero-portrait-layer { animation-play-state: paused; }
+.hero-showcase .showcase-caption { margin-top: -8px; position: relative; z-index: 4; }
+@keyframes portrait-hover-drift { 0%, 100% { translate: 0 0; } 50% { translate: 0 -9px; } }
+
+.contact-form:focus-within { border-color: #d49a73; box-shadow: 0 0 0 1px #d49a7330, 0 18px 50px #0002; }
+.contact-form { transition: border-color .3s, box-shadow .3s; }
+.skill-mark svg, .leadership-arrow { transition: transform .35s cubic-bezier(.16,1,.3,1); }
+.skill-card:hover .skill-mark svg { transform: rotate(-8deg) scale(1.12); }
+.leadership-card:hover .leadership-arrow { transform: translate(3px, -3px); }
+@media (max-width: 640px) {
+  .work-section.animated-section, .about-section.animated-section, .contact-section.animated-section { padding-block: 32px; }
+  .leadership-section.animated-section { padding-block: 32px; }
+  .hero-motion-art .hero-portrait-layer { inset: 2% 0 -3%; }
+  .section-line-art { width: 260px; opacity: .14; }
+  .hero-motion-art .portrait-aurora { filter: blur(20px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-motion-art .hero-portrait-layer { animation: none; }
+  .contact-form, .skill-mark svg, .leadership-arrow { transition: none; }
+  .skill-card:hover .skill-mark svg, .leadership-card:hover .leadership-arrow { transform: none; }
+}

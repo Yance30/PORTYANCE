@@ -34,6 +34,7 @@ import {
   motion,
   useMotionValue,
   useSpring,
+  useScroll,
   useTransform,
   type MotionValue,
 } from "motion/react";
@@ -314,6 +315,29 @@ function ProjectCaseStudy({ project, shouldReduceMotion, onClose }: { project: P
   </motion.section>;
 }
 
+function AnimatedSection({ children, className, id }: { children: React.ReactNode; className: string; id: string }) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const reduced = useReducedMotionPreference();
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
+  const progress = useSpring(scrollYProgress, { stiffness: 90, damping: 28 });
+  const drift = useTransform(progress, [0, 1], [30, -30]);
+  const draw = useTransform(progress, [0, 0.3, 1], [0, 1, 1]);
+  const glowOpacity = useTransform(progress, [0, 0.3, 0.75, 1], [0, 0.6, 0.45, 0]);
+  return <section ref={sectionRef} className={`${className} animated-section`} id={id}>
+    <div className={`section-motion-scene section-motion-${id}`} aria-hidden="true">
+      <motion.div className="section-light-wash" style={reduced ? { opacity: 0.3 } : { y: drift, opacity: glowOpacity }} />
+      {id !== "beranda" && <>
+        <motion.span className="section-draw-line" style={{ scaleX: reduced ? 1 : draw }} />
+        <motion.svg className="section-line-art" viewBox="0 0 500 320" style={reduced ? undefined : { y: drift }}>
+          <motion.path d={id === "pengalaman" ? "M430 20H340V100H240V180H140V260H40" : id === "tentang" ? "M420 160C420 300 80 300 80 160S420 20 420 160M350 160C350 260 150 260 150 160S350 60 350 160" : id === "kontak" ? "M20 230C160 230 120 70 250 70S350 230 480 230M20 260C160 260 120 100 250 100S350 260 480 260" : "M40 240L180 100H330L460 230M40 270L180 130H330L460 260"}
+            style={{ pathLength: reduced ? 1 : draw }} />
+        </motion.svg>
+      </>}
+    </div>
+    {children}
+  </section>;
+}
+
 function Reveal({
   children,
   className,
@@ -328,10 +352,10 @@ function Reveal({
   return (
     <motion.div
       className={className}
-      initial={shouldReduceMotion ? false : { opacity: 0, y: 22 }}
-      whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 32, filter: "blur(5px)" }}
+      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       viewport={{ once: true, amount: 0.18 }}
-      transition={{ duration: 0.58, delay, ease: "easeOut" }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.75, delay: shouldReduceMotion ? 0 : delay, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
     </motion.div>
@@ -1655,7 +1679,7 @@ export default function Home() {
       <div className="scene-atmosphere" aria-hidden="true">
         <i /><i /><i /><i /><i /><i />
       </div>
-      <section
+      <AnimatedSection
         className="hero section-wrap portfolio-page"
         id="beranda"
       >
@@ -1692,7 +1716,7 @@ export default function Home() {
           <div className="showcase-caption"><span>DESIGN <i>×</i> DEVELOPMENT</span><span>DATA WITH PURPOSE</span></div>
         </div>
         <button className="scroll-cue" onClick={() => navigateToPage("karya")}><ArrowDownRight size={14} /> LIHAT KARYA</button>
-      </section>
+      </AnimatedSection>
 
       <section className="intro-strip" aria-label="Ringkasan">
         <div className="section-wrap intro-inner">
@@ -1702,7 +1726,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="work-section section-wrap portfolio-page" id="karya">
+      <AnimatedSection className="work-section section-wrap portfolio-page" id="karya">
         <Reveal className="section-heading">
           <>
             <div>
@@ -1832,9 +1856,9 @@ export default function Home() {
           </div>
         )}
         <p className="sample-note"><Asterisk size={14} /> Ringkasan disusun dari repositori yang ditinjau. Demo tersedia untuk proyek yang memiliki tautan demo.</p>
-      </section>
+      </AnimatedSection>
 
-      <section className="leadership-section portfolio-page" id="pengalaman">
+      <AnimatedSection className="leadership-section portfolio-page" id="pengalaman">
         <div className="section-wrap">
           <Reveal className="section-heading leadership-heading">
             <>
@@ -1926,9 +1950,9 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </AnimatedSection>
 
-      <section className="about-section section-wrap portfolio-page" id="tentang">
+      <AnimatedSection className="about-section section-wrap portfolio-page" id="tentang">
         <div className="about-profile">
           <motion.div
             className="about-stamp"
@@ -2056,9 +2080,9 @@ export default function Home() {
             </div>
           </div>
         </section>
-      </section>
+      </AnimatedSection>
 
-      <section className="contact-section section-wrap portfolio-page" id="kontak">
+      <AnimatedSection className="contact-section section-wrap portfolio-page" id="kontak">
         <motion.div
           className="contact-topline"
           initial={shouldReduceMotion ? false : { opacity: 0, y: -14 }}
@@ -2131,7 +2155,7 @@ export default function Home() {
           <span>PORTYANCE · PORTFOLIO</span>
           <button onClick={() => navigateToPage("beranda")}>Kembali ke beranda <ArrowRight size={14} /></button>
         </motion.div>
-      </section>
+      </AnimatedSection>
       </motion.div>
       </motion.div>
 
