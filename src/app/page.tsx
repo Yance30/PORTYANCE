@@ -9,14 +9,19 @@ import {
   ArrowUpRight,
   Asterisk,
   BriefcaseBusiness,
+  ChartNoAxesColumnIncreasing,
   Check,
   Code2,
+  Database,
   House,
   Layers3,
   LockKeyhole,
   Mail,
   Menu,
   MoveUpRight,
+  PanelsTopLeft,
+  Shapes,
+  Smartphone,
   UserRound,
   UsersRound,
   Volume2,
@@ -155,20 +160,29 @@ const navigationIcons = [
 ];
 
 const skills = [
-  { name: "Flutter", mark: "F", group: "Mobile", style: "flutter" },
-  { name: "Dart", mark: "D", group: "Bahasa", style: "dart" },
-  { name: "Kotlin", mark: "K", group: "Bahasa", style: "kotlin" },
-  { name: "Java", mark: "J", group: "Bahasa", style: "java" },
-  { name: "C++", mark: "C++", group: "Bahasa", style: "cpp" },
-  { name: "Python", mark: "Py", group: "Bahasa", style: "python" },
-  { name: "JavaScript", mark: "JS", group: "Bahasa", style: "javascript" },
-  { name: "TypeScript", mark: "TS", group: "Bahasa", style: "typescript" },
-  { name: "React", mark: "⚛", group: "Web", style: "react" },
-  { name: "Node.js", mark: "N", group: "Web", style: "node" },
-  { name: "SQL", mark: "SQL", group: "Database", style: "sql" },
-  { name: "Figma", mark: "F", group: "Design", style: "figma" },
-  { name: "Power BI", mark: "BI", group: "Dashboard", style: "powerbi" },
-];
+  { name: "Python", group: "Bahasa" },
+  { name: "SQL", group: "Database" },
+  { name: "Power BI", group: "Dashboard" },
+  { name: "JavaScript", group: "Bahasa" },
+  { name: "TypeScript", group: "Bahasa" },
+  { name: "React", group: "Web" },
+  { name: "Node.js", group: "Web" },
+  { name: "Flutter", group: "Mobile" },
+  { name: "Dart", group: "Bahasa" },
+  { name: "Kotlin", group: "Bahasa" },
+  { name: "Java", group: "Bahasa" },
+  { name: "C++", group: "Bahasa" },
+  { name: "Figma", group: "Design" },
+] as const;
+
+const skillIcons = {
+  Mobile: Smartphone,
+  Bahasa: Code2,
+  Web: PanelsTopLeft,
+  Database,
+  Design: Shapes,
+  Dashboard: ChartNoAxesColumnIncreasing,
+};
 
 const contactEmail = "yansgrouppansi@gmail.com";
 const contactLinks = {
@@ -1527,7 +1541,7 @@ export default function Home() {
       <section className="intro-strip" aria-label="Ringkasan" hidden={activePage !== "beranda"}>
         <div className="section-wrap intro-inner">
           <div className="dashboard-stat"><strong>05</strong><span>PROYEK PORTOFOLIO</span></div>
-          <div className="dashboard-stat"><strong>12</strong><span>BAHASA & TOOLS</span></div>
+          <div className="dashboard-stat"><strong>{String(skills.length).padStart(2, "0")}</strong><span>BAHASA & TOOLS</span></div>
           <div className="dashboard-stat"><strong>05</strong><span>PENGALAMAN ORGANISASI</span></div>
         </div>
       </section>
@@ -1576,10 +1590,9 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, ease: "easeOut" }}
         >
-          <div className="eyebrow"><span className="status-dot" /> PORTFOLIO / INDONESIA</div>
-          <h1>Yance Adhy Nata<br />Panjaitan<span className="hero-role">Mahasiswa Sistem Informasi · Pengembangan Web & Dashboard Analitik</span></h1>
+          <h1>Yance Adhy Nata<br />Panjaitan<span className="hero-role">Mahasiswa Sistem Informasi · Pengembangan Web & Analitik Data</span></h1>
           <p className="hero-description">
-            Saya membangun aplikasi web dan dashboard analitik untuk mengubah kebutuhan bisnis menjadi solusi digital.
+            Saya merancang aplikasi web dan dashboard analitik untuk menyajikan data secara jelas dan menjawab kebutuhan bisnis.
           </p>
           <div className="hero-actions">
             <button className="button button-light" onClick={() => navigateToPage("karya")}>Lihat proyek <ArrowDownRight size={17} /></button>
@@ -1587,9 +1600,9 @@ export default function Home() {
           </div>
           <div className="hero-meta">
             <span className="hero-focus-label">FOKUS UTAMA</span>
+            <span>Dashboard & analitik data</span>
             <span>Pengembangan web</span>
             <span>Aplikasi</span>
-            <span>Dashboard & analitik data</span>
           </div>
         </motion.div>
 
@@ -1942,27 +1955,30 @@ export default function Home() {
           >
             <span className="eyebrow section-eyebrow">KEAHLIAN</span>
             <h3 id="about-skills-title">Teknologi yang saya gunakan</h3>
-            <p>Bahasa pemrograman, pengembangan web dan mobile, basis data, serta perangkat desain.</p>
+            <p>Teknologi pengembangan aplikasi, analitik data, dan desain antarmuka.</p>
           </motion.div>
           <div className="skills-grid">
-            {skills.map((skill, index) => (
-              <motion.article
+            {skills.map((skill, index) => {
+              const SkillIcon = skillIcons[skill.group];
+              return (
+                <motion.article
                 className="skill-card"
                 key={skill.name}
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
                 whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-                whileHover={shouldReduceMotion ? undefined : { y: -7, rotateX: 5, rotateY: -3 }}
-                whileTap={shouldReduceMotion ? undefined : { scale: 0.97, rotateX: 1.5, rotateY: -1.5 }}
+                whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
                 data-card-spotlight
                 onPointerMove={updateCardSpotlight}
                 viewport={{ once: true, amount: 0.25 }}
                 transition={{ type: "spring", stiffness: 360, damping: 24, delay: shouldReduceMotion ? 0 : index * 0.025 }}
               >
-                <span className={`skill-mark skill-mark-${skill.style}`} aria-hidden="true">{skill.mark}</span>
+                <span className="skill-mark" aria-hidden="true"><SkillIcon size={20} strokeWidth={1.7} /></span>
                 <span className="skill-name">{skill.name}</span>
                 <span className="skill-group">{skill.group}</span>
-              </motion.article>
-            ))}
+                </motion.article>
+              );
+            })}
           </div>
           <div className="skill-focus">
             <div>
