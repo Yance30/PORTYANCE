@@ -2116,13 +2116,56 @@ main {
 .showcase-caption { padding-inline: 8%; padding-top: 22px; }
 @keyframes portrait-orbit-turn { to { transform: rotate(360deg); } }
 @keyframes portrait-breathe { from { opacity: .6; transform: scale(.9) rotate(-8deg); } to { opacity: 1; transform: scale(1.05) rotate(8deg); } }
+
+.hero-actions { flex-wrap: wrap; }
+.cv-pending { padding: 12px 14px; min-height: 44px; border: 1px dashed #79624f; border-radius: 6px; background: #211b16; color: #c9b8a7; font: inherit; font-size: 12px; cursor: not-allowed; }
+.project-filter-status { margin: 0 0 16px; color: #c9b8a7; font-size: 12px; }
+.project-grid { align-items: start; }
+.project-card { scroll-margin-top: 100px; }
+.project-card-with-screen .project-preview { aspect-ratio: 1.7; min-height: 200px; }
+.project-screenshot { position: relative; width: 100%; height: 100%; background: #e9eeeb; overflow: hidden; }
+.project-screenshot img { object-fit: cover; object-position: center top; transition: object-position 3s ease, transform .6s ease; }
+.project-card-with-screen .project-label { top: 12px; bottom: auto; background: #171512eb; border: 1px solid #806348; color: #f5f1e9; border-radius: 5px; padding: 6px 9px; }
+.project-card-expanded { grid-column: 1 / -1; border-color: #d49a73; }
+.project-card-expanded > .project-preview { display: none; }
+.project-card-expanded > .project-info .bi-project-summary { display: none; }
+.project-case-inline { overflow: hidden; margin-top: 20px; border-top: 1px solid #70543e; padding: 24px clamp(4px, 2vw, 24px); }
+.project-case-inline .project-focus-heading { margin-bottom: 20px; gap: 16px; }
+.project-case-inline .project-focus-heading h3 { margin: 8px 0; color: #f5f1e9; font-size: clamp(22px, 3vw, 32px); line-height: 1.3; }
+.project-case-inline .project-focus-heading h3:focus-visible { outline: 2px solid #e4ad85; outline-offset: 6px; }
+.project-focus-close { flex-shrink: 0; min-width: 44px; min-height: 44px; }
+.project-gallery-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.project-gallery-tabs button { min-height: 44px; padding: 10px 14px; border: 1px solid #72533c; border-radius: 6px; color: #e3d4c6; background: #211b16; cursor: pointer; }
+.project-gallery-tabs button[aria-pressed="true"] { color: #241810; background: #e4ad85; }
+.project-gallery-image { display: block; position: relative; width: 100%; aspect-ratio: 16 / 10; max-height: 560px; border: 1px solid #685340; border-radius: 10px; overflow: hidden; background: #e9eeeb; }
+.project-gallery-image img { object-fit: cover; object-position: top; }
+.project-gallery-image > span { position: absolute; bottom: 14px; right: 14px; display: flex; align-items: center; gap: 6px; padding: 10px 14px; border: 1px solid #a88260; border-radius: 6px; color: #f5f1e9; background: #171512ee; font-size: 12px; }
+.project-gallery-note { color: #c9b8a7; font-size: 12px; line-height: 1.7; margin: 12px 0 24px; }
+.project-gallery-note a { display: inline-flex; align-items: center; gap: 4px; color: #e4ad85; text-decoration: underline; text-underline-offset: 3px; }
+.project-case-inline .project-journey { margin-block: 24px; padding-right: 0; }
+.project-case-inline .project-journey-steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.project-case-inline .project-journey-progress { display: none; }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .project-card-with-screen:hover .project-screenshot img { object-position: center 12%; transform: scale(1.015); }
+}
+@media (pointer: coarse) {
+  .project-card { transform: none !important; }
+  .project-focus-trigger, .project-links a, .filter-chip { min-height: 44px; }
+}
 @media (max-width: 640px) {
   .hero-showcase .hero-motion-art { height: 340px; }
   .hero-showcase .hero-motion-art .portrait-index { font-size: 9px; }
   .showcase-caption { padding-inline: 4%; }
+  .project-case-inline { padding: 20px 4px; }
+  .project-case-inline .project-journey-steps { grid-template-columns: 1fr; gap: 16px; }
+  .project-card-with-screen .project-preview { min-height: 180px; }
+  .project-gallery-image { aspect-ratio: 4 / 3; }
+  .project-gallery-image > span { font-size: 11px; padding: 8px; right: 8px; bottom: 8px; }
+  .hero-actions { gap: 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .portrait-aurora, .portrait-orbit-path { animation: none; }
   .hero-actions .button { transition: none; }
   .hero-actions .button:hover { transform: none; }
+  .project-screenshot img { transition: none; }
 }

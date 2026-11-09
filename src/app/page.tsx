@@ -143,6 +143,14 @@ const projects = [
 
 type Project = (typeof projects)[number];
 
+const projectScreens: Record<string, { src: string; title: string; source: string; note: string }[]> = {
+  jala: [{ src: "/project-previews/jala-desktop.png", title: "Tinjauan klaim", source: "https://github.com/Yance30/Jala/blob/main/artifacts/ux-review-desktop.png", note: "Screenshot prototipe dari repositori JALA. Angka pada layar adalah data pengujian, bukan hasil operasional BPJS." }],
+  tandur: [
+    { src: "/project-previews/tandur-home.png", title: "Beranda", source: "https://github.com/Yance30/Tandur/blob/main/hasil-ui/01-P1-beranda.png", note: "Screenshot asli prototipe Tandur; data dan identitas di dalam demo bersifat contoh." },
+    { src: "/project-previews/tandur-workspace.png", title: "Ruang kerja petugas", source: "https://github.com/Yance30/Tandur/blob/main/hasil-ui/21-F1-petugas-beranda.png", note: "Alur kerja petugas pada prototipe; nilai akad dan data lembaga pada layar adalah contoh." },
+  ],
+};
+
 const biStories: Record<string, { question: string; metrics: string[]; data: string; insight: string; action: string; limit: string }> = {
   tokopedia: {
     question: "Kategori mana yang perlu ditinjau dari sisi pengalaman pelanggan?",
@@ -237,6 +245,8 @@ function updateCardSpotlight(event: React.PointerEvent<HTMLElement>) {
 }
 
 function ProjectVisual({ project }: { project: Project }) {
+  const screen = projectScreens[project.visual]?.[0];
+  if (screen) return <div className="project-screenshot"><Image src={screen.src} alt={`Screenshot ${project.name}: ${screen.title}`} fill sizes="(max-width: 640px) 100vw, 50vw" /></div>;
   return (
     <div className={`project-visual visual-${project.visual}`} aria-hidden="true">
       <div className="visual-top"><span>{project.previewTitle}</span></div>
@@ -252,6 +262,56 @@ function ProjectVisual({ project }: { project: Project }) {
       <div className="visual-bottom">{project.stack.slice(0, 3).join(" · ")}</div>
     </div>
   );
+}
+
+function ProjectCaseStudy({ project, shouldReduceMotion, onClose }: { project: Project; shouldReduceMotion: boolean; onClose: () => void }) {
+  const [selectedScreen, setSelectedScreen] = useState(0);
+  const screens = projectScreens[project.visual];
+  const screen = screens?.[selectedScreen];
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      headingRef.current?.focus({ preventScroll: true });
+      headingRef.current?.closest("article")?.scrollIntoView({ behavior: shouldReduceMotion ? "instant" : "smooth", block: "start" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [shouldReduceMotion]);
+
+  return <motion.section
+    id={`project-focus-${projects.indexOf(project)}`}
+    className="project-case-inline"
+    initial={shouldReduceMotion ? false : { opacity: 0, height: 0 }}
+    animate={{ opacity: 1, height: "auto" }}
+    exit={{ opacity: 0, height: 0 }}
+    transition={{ duration: shouldReduceMotion ? 0 : 0.35 }}
+    aria-label={`Studi kasus ${project.name}`}
+  >
+    <div className="project-focus-heading">
+      <div><span className="eyebrow">DI BALIK PROYEK</span><h3 ref={headingRef} tabIndex={-1}>Studi kasus {project.name}</h3></div>
+      <button type="button" className="project-focus-close" onClick={onClose} aria-label={`Tutup studi kasus ${project.name}`}><X size={20} /></button>
+    </div>
+    {screen && <div className="project-gallery">
+      {screens.length > 1 && <div className="project-gallery-tabs" role="group" aria-label="Pilih screenshot">
+        {screens.map((item, index) => <button key={item.src} type="button" aria-pressed={index === selectedScreen} onClick={() => setSelectedScreen(index)}>{item.title}</button>)}
+      </div>}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.a key={screen.src} href={screen.src} target="_blank" rel="noopener noreferrer" className="project-gallery-image"
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
+          aria-label={`Buka screenshot lengkap ${screen.title}`}>
+          <Image src={screen.src} alt={`${project.name} — ${screen.title}`} fill sizes="(max-width: 640px) 100vw, 80vw" />
+          <span>Buka gambar lengkap <ArrowUpRight size={14} /></span>
+        </motion.a>
+      </AnimatePresence>
+      <p className="project-gallery-note">{screen.note} <a href={screen.source} target="_blank" rel="noopener noreferrer">Lihat sumber <ArrowUpRight size={12} /></a></p>
+    </div>}
+    <ProjectJourney project={project} shouldReduceMotion={shouldReduceMotion} />
+    <div className="project-links">
+      <a href={project.github} target="_blank" rel="noopener noreferrer"><Code2 size={14} /> Lihat kode <ArrowUpRight size={12} /></a>
+      {project.demo && <a href={project.demo} target="_blank" rel="noopener noreferrer">Buka demo <ArrowUpRight size={12} /></a>}
+      <button type="button" className="project-focus-trigger" onClick={onClose}>Tutup studi kasus <X size={14} /></button>
+    </div>
+  </motion.section>;
 }
 
 function Reveal({
@@ -1617,6 +1677,7 @@ export default function Home() {
           <div className="hero-actions">
             <button className="button button-light" onClick={() => navigateToPage("karya")}>Lihat proyek <ArrowDownRight size={17} /></button>
             <button className="text-link" onClick={() => navigateToPage("kontak")}>Hubungi saya <ArrowUpRight size={16} /></button>
+            <button type="button" className="cv-pending" disabled title="CV akan ditambahkan setelah tersedia">CV segera tersedia</button>
           </div>
           <div className="hero-meta">
             <span className="hero-focus-label">FOKUS UTAMA</span>
@@ -1671,16 +1732,17 @@ export default function Home() {
           ))}
           <span className="filter-hint"><MoveUpRight size={13} /> Pilih kategori</span>
         </div>
-        <motion.div layout className="project-grid">
+        <p className="project-filter-status" role="status" aria-live="polite">{visibleProjects.length} proyek ditampilkan · {activeFilter}</p>
+        <motion.div layout={!shouldReduceMotion} className="project-grid">
           <AnimatePresence mode="popLayout">
             {visibleProjects.map((project, index) => (
               <motion.article
-                className={`project-card${biStories[project.visual] ? " project-card-bi" : ""}`}
+                className={`project-card${biStories[project.visual] ? " project-card-bi" : ""}${projectScreens[project.visual] ? " project-card-with-screen" : ""}${expandedProject?.name === project.name ? " project-card-expanded" : ""}`}
                 key={project.name}
-                layout
+                layout={!shouldReduceMotion}
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                whileHover={shouldReduceMotion ? undefined : {
+                whileHover={shouldReduceMotion || expandedProject?.name === project.name ? undefined : {
                   y: -7,
                   rotateX: 2,
                   rotateY: index % 2 === 0 ? -2 : 2,
@@ -1690,7 +1752,7 @@ export default function Home() {
                 onPointerMove={updateCardSpotlight}
                 viewport={{ once: true, amount: 0.15 }}
                 exit={shouldReduceMotion ? undefined : { opacity: 0, y: 8 }}
-                transition={{ type: "spring", stiffness: 260, damping: 24, delay: index * 0.04 }}
+                transition={shouldReduceMotion ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 28, layout: { duration: 0.4 }, opacity: { duration: 0.2 } }}
                 style={shouldReduceMotion ? undefined : { transformPerspective: 1100 }}
                 onPointerEnter={() => setFocusedProject(projects.indexOf(project))}
                 onPointerLeave={() => setFocusedProject((current) => current === projects.indexOf(project) ? null : current)}
@@ -1704,7 +1766,7 @@ export default function Home() {
                 <div className="project-preview">
                   <ProjectVisual project={project} />
                   <span className="project-label">{project.label}</span>
-                  {biStories[project.visual] && <span className="preview-disclosure">Ilustrasi antarmuka</span>}
+                  <span className="preview-disclosure">{projectScreens[project.visual] ? "Screenshot proyek" : "Ilustrasi antarmuka"}</span>
                 </div>
                 <div className="project-info">
                   <div>
@@ -1741,6 +1803,7 @@ export default function Home() {
                     </div>
                     <button
                       className="project-focus-trigger"
+                      id={`project-trigger-${project.visual}`}
                       type="button"
                       aria-expanded={expandedProject?.name === project.name}
                       aria-controls={`project-focus-${projects.indexOf(project)}`}
@@ -1752,65 +1815,16 @@ export default function Home() {
                   </div>
                   <div className="project-meta"><span>{project.type}</span><span>{project.year}</span></div>
                 </div>
+                <AnimatePresence initial={false}>
+                  {expandedProject?.name === project.name && <ProjectCaseStudy key={project.visual} project={project} shouldReduceMotion={shouldReduceMotion} onClose={() => {
+                    setExpandedProject(null);
+                    document.getElementById(`project-trigger-${project.visual}`)?.focus({ preventScroll: true });
+                  }} />}
+                </AnimatePresence>
               </motion.article>
             ))}
           </AnimatePresence>
         </motion.div>
-        <AnimatePresence initial={false}>
-          {expandedProject && visibleProjects.includes(expandedProject) && (
-            <motion.article
-              id={`project-focus-${projects.indexOf(expandedProject)}`}
-              className="project-focus-panel"
-              key={expandedProject.name}
-              initial={shouldReduceMotion ? false : { opacity: 0, y: 18, scale: 0.985 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={shouldReduceMotion ? undefined : { opacity: 0, y: -10, scale: 0.99 }}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.42, ease: [0.2, 0.8, 0.2, 1] }}
-              aria-label={`Studi kasus ${expandedProject.name}`}
-            >
-              <div className="project-focus-preview">
-                <ProjectVisual project={expandedProject} />
-                <span className="project-label">STUDI KASUS · {expandedProject.year}</span>
-              </div>
-              <div className="project-focus-content">
-                <div className="project-focus-heading">
-                  <div>
-                    <span className="eyebrow">01 / GAMBARAN PROYEK</span>
-                    <h3>{expandedProject.name}</h3>
-                  </div>
-                  <button
-                    className="project-focus-close"
-                    type="button"
-                    aria-label={`Tutup studi kasus ${expandedProject.name}`}
-                    onClick={() => setExpandedProject(null)}
-                  >
-                    <X size={17} />
-                  </button>
-                </div>
-                <p>{expandedProject.description}</p>
-                <ProjectJourney project={expandedProject} shouldReduceMotion={shouldReduceMotion} />
-                <div className="project-stack" aria-label={`Teknologi ${expandedProject.name}`}>
-                  {expandedProject.stack.map((technology) => <span key={technology}>{technology}</span>)}
-                </div>
-                <div className="project-links">
-                  <a href={expandedProject.github} target="_blank" rel="noopener noreferrer">
-                    <Code2 size={13} /> Lihat kode <ArrowUpRight size={12} />
-                  </a>
-                  {expandedProject.demo && (
-                    <a href={expandedProject.demo} target="_blank" rel="noopener noreferrer">
-                      Lihat demo <ArrowUpRight size={12} />
-                    </a>
-                  )}
-                  {"loginPreview" in expandedProject && expandedProject.loginPreview && (
-                    <Link href={expandedProject.loginPreview}>
-                      <LockKeyhole size={13} /> Pratinjau masuk <ArrowUpRight size={12} />
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </motion.article>
-          )}
-        </AnimatePresence>
         {visibleProjects.length === 0 && (
           <div className="project-empty" role="status">
             <Layers3 size={22} strokeWidth={1.4} />
