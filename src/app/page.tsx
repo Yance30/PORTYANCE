@@ -1044,45 +1044,9 @@ function PortfolioWorld({
   return <canvas className="portfolio-world-canvas" data-scene={activePage} ref={canvasRef} aria-hidden="true" />;
 }
 
-function AnalyticsPreview({ shouldReduceMotion }: { shouldReduceMotion: boolean }) {
-  const [period, setPeriod] = useState<"minggu" | "bulan">("minggu");
-  const series = period === "minggu" ? [24, 32, 28, 46, 38, 54, 62] : [42, 56, 48, 72, 64, 88, 96];
-  const labels = period === "minggu" ? ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"] : ["Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt"];
-  const total = series.reduce((sum, value) => sum + value, 0);
-  return (
-    <section className="analytics-preview" aria-label="Demo dashboard penjualan dengan data ilustratif">
-      <div className="analytics-header">
-        <span><ChartNoAxesColumnIncreasing size={15} /> ANALYTICS LAB</span>
-        <span className="analytics-demo-label">DATA ILUSTRATIF</span>
-      </div>
-      <div className="analytics-toolbar">
-        <div><span className="analytics-kpi-label">Total pesanan contoh</span><strong>{total}<small>pesanan</small></strong></div>
-        <div className="analytics-period" role="group" aria-label="Rentang waktu grafik">
-          <button type="button" aria-pressed={period === "minggu"} onClick={() => setPeriod("minggu")}>7 hari</button>
-          <button type="button" aria-pressed={period === "bulan"} onClick={() => setPeriod("bulan")}>7 bulan</button>
-        </div>
-      </div>
-      <div className="analytics-chart" role="img" aria-label={`Pesanan ilustratif: ${labels.map((label, index) => `${label} ${series[index]}`).join(", ")}.`}>
-        {series.map((value, index) => (
-          <div className="analytics-column" key={index}>
-            <span className="analytics-value">{value}</span>
-            <div className="analytics-bar-track"><motion.div className="analytics-bar"
-              initial={shouldReduceMotion ? false : { scaleY: 0 }}
-              whileInView={{ scaleY: 1 }} viewport={{ once: true }}
-              animate={{ height: `${value}%` }}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.45, delay: shouldReduceMotion ? 0 : index * 0.035 }}
-              style={{ height: `${value}%`, transformOrigin: "bottom" }} />
-            </div>
-            <span className="analytics-axis">{labels[index]}</span>
-          </div>
-        ))}
-      </div>
-      <p className="analytics-insight" aria-live="polite"><ArrowUpRight size={16} /><span>Puncak contoh: <strong>{labels[series.indexOf(Math.max(...series))]}</strong>, {Math.max(...series)} pesanan. Ubah rentang untuk menjelajahi data.</span></p>
-    </section>
-  );
-}
-
 function HeroArtwork({ shouldReduceMotion }: { shouldReduceMotion: boolean }) {
+  const [paused, setPaused] = useState(false);
+  const motionDisabled = shouldReduceMotion || paused;
   const pointerX = useMotionValue(0);
   const pointerY = useMotionValue(0);
   const rotateX = useSpring(pointerX, { stiffness: 160, damping: 22, mass: 0.5 });
@@ -1091,12 +1055,12 @@ function HeroArtwork({ shouldReduceMotion }: { shouldReduceMotion: boolean }) {
   const portraitY = useTransform(rotateX, [-6, 6], [10, -10]);
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (shouldReduceMotion || event.pointerType !== "mouse") return;
+    if (motionDisabled || event.pointerType !== "mouse") return;
     const bounds = event.currentTarget.getBoundingClientRect();
     const x = (event.clientX - bounds.left) / bounds.width;
     const y = (event.clientY - bounds.top) / bounds.height;
-    pointerX.set((0.5 - y) * 4);
-    pointerY.set((x - 0.5) * 5);
+    pointerX.set((0.5 - y) * 10);
+    pointerY.set((x - 0.5) * 12);
   };
 
   const resetTilt = () => {
@@ -1106,22 +1070,35 @@ function HeroArtwork({ shouldReduceMotion }: { shouldReduceMotion: boolean }) {
 
   return (
     <motion.div
-      className="hero-art hero-art-3d"
+      className="hero-art hero-art-3d hero-motion-art"
+      data-motion={motionDisabled ? "paused" : "running"}
       aria-label="Foto portrait pemilik portfolio"
       initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.94 }}
       animate={{ opacity: 1, scale: 1 }}
-      style={shouldReduceMotion ? undefined : {
-        rotateX,
-        rotateY,
+      style={{
+        rotateX: motionDisabled ? 0 : rotateX,
+        rotateY: motionDisabled ? 0 : rotateY,
         transformPerspective: 1100,
       }}
       onPointerMove={handlePointerMove}
       onPointerLeave={resetTilt}
       transition={{ duration: 0.8, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
     >
+      <div className="portrait-aurora" aria-hidden="true" />
+      <svg className="portrait-orbits" viewBox="0 0 500 500" aria-hidden="true" focusable="false">
+        <g className="portrait-orbit-path">
+          <ellipse cx="250" cy="250" rx="224" ry="172" />
+          <circle cx="26" cy="250" r="5" />
+          <circle cx="474" cy="250" r="3" />
+        </g>
+        <g className="portrait-orbit-path portrait-orbit-reverse">
+          <ellipse cx="250" cy="250" rx="188" ry="236" />
+          <circle cx="250" cy="14" r="4" />
+        </g>
+      </svg>
       <motion.div
         className="hero-portrait-layer"
-        style={shouldReduceMotion ? undefined : { x: portraitX, y: portraitY }}
+        style={{ x: motionDisabled ? 0 : portraitX, y: motionDisabled ? 0 : portraitY }}
       >
         <Image
           className="portrait-image"
@@ -1136,6 +1113,10 @@ function HeroArtwork({ shouldReduceMotion }: { shouldReduceMotion: boolean }) {
       <div className="portrait-shade" />
       <div className="portrait-glint" aria-hidden="true" />
       <span className="portrait-index"><Asterisk size={13} /> PORTFOLIO / 2026</span>
+      {!shouldReduceMotion && <button className="portrait-motion-toggle" type="button" aria-pressed={paused}
+        onClick={() => { resetTilt(); setPaused((value) => !value); }}>
+        {paused ? "Putar animasi" : "Jeda animasi"}
+      </button>}
     </motion.div>
   );
 }
@@ -1625,7 +1606,11 @@ export default function Home() {
           transition={{ duration: 0.65, ease: "easeOut" }}
         >
           <span className="eyebrow hero-bi-eyebrow">DATA · DESIGN · DEVELOPMENT</span>
-          <h1>Yance Adhy Nata<br />Panjaitan<span className="hero-role">Mahasiswa Sistem Informasi · Fokus Business Intelligence & Pengembangan Web</span></h1>
+          <h1>
+            <motion.span className="hero-name-line" initial={shouldReduceMotion ? false : { opacity: 0, y: 28, filter: "blur(8px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} transition={{ duration: 0.8, delay: 0.15 }}>Yance Adhy Nata</motion.span>
+            <motion.span className="hero-name-line" initial={shouldReduceMotion ? false : { opacity: 0, y: 28, filter: "blur(8px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} transition={{ duration: 0.8, delay: 0.3 }}>Panjaitan</motion.span>
+            <span className="hero-role">Mahasiswa Sistem Informasi · Fokus Business Intelligence & Pengembangan Web</span>
+          </h1>
           <p className="hero-description">
             Mengubah data menjadi cerita yang mudah dipahami. Saya membangun dashboard analitik dan aplikasi web untuk mengeksplorasi masalah, menemukan pola, dan mendukung keputusan bisnis.
           </p>
@@ -1644,7 +1629,6 @@ export default function Home() {
         <div className="hero-showcase">
           <HeroArtwork shouldReduceMotion={shouldReduceMotion} />
           <div className="showcase-caption"><span>DESIGN <i>×</i> DEVELOPMENT</span><span>DATA WITH PURPOSE</span></div>
-          <AnalyticsPreview shouldReduceMotion={shouldReduceMotion} />
         </div>
         <button className="scroll-cue" onClick={() => navigateToPage("karya")}><ArrowDownRight size={14} /> LIHAT KARYA</button>
       </section>
@@ -1697,7 +1681,9 @@ export default function Home() {
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 whileHover={shouldReduceMotion ? undefined : {
-                  y: -4,
+                  y: -7,
+                  rotateX: 2,
+                  rotateY: index % 2 === 0 ? -2 : 2,
                 }}
                 whileTap={shouldReduceMotion ? undefined : { scale: 0.985, rotateX: 1.5, rotateY: -1.5 }}
                 data-card-spotlight
@@ -1730,7 +1716,7 @@ export default function Home() {
                         <h4>{biStories[project.visual].question}</h4>
                         <div className="bi-metrics">{biStories[project.visual].metrics.map((metric) => <span key={metric}>{metric}</span>)}</div>
                         <details className="bi-insight-detail">
-                          <summary>Catatan insight <ArrowUpRight size={14} /></summary>
+                          <summary>Panduan membaca analisis <ArrowUpRight size={14} /></summary>
                           <p>{biStories[project.visual].insight}</p>
                         </details>
                       </div>
