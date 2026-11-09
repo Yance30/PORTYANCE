@@ -2009,6 +2009,32 @@ main {
 
 #beranda, #karya, #pengalaman, #tentang, #kontak { scroll-margin-top: 88px; }
 
+/* Reserve a separate caption row below the animated portrait and cards. */
+.hero-art-3d { margin-bottom: 72px; }
+.hero-art-3d .portrait-caption {
+  top: calc(100% + 20px);
+  bottom: auto;
+  left: 0;
+  right: 0;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  padding: 12px 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  border: 1px solid #71513d;
+  border-radius: 8px;
+  background: #1c1916;
+  color: #f5f1e9;
+  font-size: clamp(11px, 1vw, 13px);
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: .09em;
+  transform: none;
+  text-align: center;
+}
+.hero-art-3d .portrait-caption i { color: #e4ad85; }
+
 @media (max-width: 640px) {
   main { padding-bottom: 88px; }
 }
