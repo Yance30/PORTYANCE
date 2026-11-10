@@ -562,6 +562,9 @@ main { position: relative; z-index: 1; height: 100svh; min-height: 0; overflow: 
 .visual-nyaper .visual-art i:nth-child(3) { left: 46%; top: 19%; }
 .visual-nyaper .visual-art i:nth-child(4) { left: 25%; bottom: 20%; }
 .visual-nyaper .visual-art i:nth-child(5) { right: 25%; bottom: 18%; }
+.visual-kedai { background: radial-gradient(ellipse at 76% 62%, #4a0d13 0, #1f050a 72%); }
+.visual-kedai .visual-art { border-bottom-color: rgba(201,162,39,.55); }
+.visual-kedai .visual-art i { background: linear-gradient(180deg, #e6c86a, #8a000a); opacity: .92; border-radius: 2px 2px 0 0; }
 
 .services-section { padding: 112px 0 104px; background: #e7e7e3; color: #151515; }
 .services-section .section-eyebrow { color: #777773; }

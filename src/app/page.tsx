@@ -42,6 +42,25 @@ import * as THREE from "three";
 
 const projects = [
   {
+    name: "Kedai Rakdjat POS",
+    type: "Aplikasi kasir & dashboard",
+    categories: ["Website", "Aplikasi"],
+    description: "POS local-first untuk kedai makan: transaksi tetap berjalan offline di tablet, sinkron ke cloud saat online, dengan dashboard omzet pemilik, layar dapur, QRIS, dan cetak struk Bluetooth.",
+    year: "2026",
+    visual: "kedai",
+    label: "Aplikasi kasir",
+    stack: ["React", "TypeScript", "Tailwind CSS", "Supabase", "Dexie"],
+    github: "https://github.com/Yance30/kedai-rakdjat",
+    previewTitle: "KEDAI RAKDJAT / POS",
+    previewHeading: "Kasir kedai",
+    previewSubtitle: "Offline-first · QRIS · Layar dapur",
+    caseStudy: {
+      challenge: "Kasir kedai harus tetap melayani saat internet putus, sementara pemilik perlu memantau omzet dan dapur dari perangkat terpisah.",
+      approach: "Membangun PWA local-first dengan React, TypeScript, dan Dexie di tablet sebagai sumber data utama; sinkronisasi upsert ke Supabase mengisi dashboard owner dan KDS. Pembayaran QRIS statis dikonfirmasi manual, struk dicetak via Bluetooth ESC/POS.",
+      outcome: "Alur dine-in lengkap (denah meja, pesanan terbuka, bill sementara), rekonsiliasi kas per pecahan uang saat tutup shift, serta grafik pemasukan 7 hari untuk penilaian kinerja.",
+    },
+  },
+  {
     name: "Tokopedia Analytics",
     type: "Dashboard & analitik data",
     categories: ["Dashboard"],
