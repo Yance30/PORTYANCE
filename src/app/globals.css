@@ -2254,7 +2254,10 @@ h1, h2 {
 .project-card, .leadership-card, .about-fact, .skill-card, .contact-form {
   box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
 }
-.work-section.portfolio-page .project-grid { align-items: stretch; }
+.work-section.portfolio-page .project-grid {
+  align-items: stretch;
+  grid-auto-rows: 1fr;
+}
 .work-section.portfolio-page .project-card:not(.project-card-expanded) {
   display: flex;
   flex-direction: column;
@@ -2267,6 +2270,47 @@ h1, h2 {
 }
 .work-section.portfolio-page .project-card:not(.project-card-expanded) > .project-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 8px 8px;
+}
+.work-section.portfolio-page .project-card:not(.project-card-expanded) > .project-info > div:first-child {
+  width: 100%;
+}
+.work-section.portfolio-page .project-card:not(.project-card-expanded) .project-info h3 {
+  margin-bottom: 10px;
+}
+.work-section.portfolio-page .project-card:not(.project-card-expanded) .project-info p {
+  line-height: 1.75;
+}
+.work-section.portfolio-page .project-card:not(.project-card-expanded) .bi-project-summary {
+  margin-block: 18px;
+}
+.work-section.portfolio-page .project-card:not(.project-card-expanded) .project-stack {
+  margin-top: 18px;
+  gap: 8px;
+}
+.work-section.portfolio-page .project-card:not(.project-card-expanded) .project-links {
+  margin-top: 16px;
+  gap: 10px;
+}
+.work-section.portfolio-page .project-card:not(.project-card-expanded) .project-focus-trigger {
+  margin-top: 16px;
+}
+.work-section.portfolio-page .project-card:not(.project-card-expanded) .project-meta {
+  min-width: 0;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(245,241,233,.1);
+  text-align: left;
+}
+.hero-showcase .hero-avatar::before,
+.hero-showcase .hero-avatar::after {
+  display: none;
 }
 .project-card:hover, .leadership-card:hover, .about-fact:hover, .skill-card:hover {
   box-shadow: 0 12px 28px rgba(0, 0, 0, .18);
