@@ -52,8 +52,8 @@ export default async function ExperiencePage({ params }: ExperiencePageProps) {
         </div>
 
         <section className="experience-description" aria-labelledby="activity-description">
-          <span className="eyebrow">TENTANG KEGIATAN</span>
-          <h2 id="activity-description">Peran dan dokumentasi</h2>
+          <span className="eyebrow">RINGKASAN PENGALAMAN</span>
+          <h2 id="activity-description">Peran di {experience.organization}</h2>
           <p>{experience.description}</p>
         </section>
 

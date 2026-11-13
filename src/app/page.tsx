@@ -8,6 +8,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   Asterisk,
+  Award,
   BriefcaseBusiness,
   ChartNoAxesColumnIncreasing,
   Check,
@@ -1708,19 +1709,18 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, ease: "easeOut" }}
         >
-          <span className="eyebrow hero-bi-eyebrow">DATA · DESIGN · DEVELOPMENT</span>
+            <span className="eyebrow hero-bi-eyebrow">BUSINESS INTELLIGENCE · WEB DEVELOPMENT</span>
           <h1>
             <motion.span className="hero-name-line" initial={shouldReduceMotion ? false : { opacity: 0, y: 28, filter: "blur(8px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} transition={{ duration: 0.8, delay: 0.15 }}>Yance Adhy Nata</motion.span>
             <motion.span className="hero-name-line" initial={shouldReduceMotion ? false : { opacity: 0, y: 28, filter: "blur(8px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} transition={{ duration: 0.8, delay: 0.3 }}>Panjaitan</motion.span>
-            <span className="hero-role">Mahasiswa Sistem Informasi · Fokus Business Intelligence & Pengembangan Web</span>
+            <span className="hero-role">Mahasiswa Sistem Informasi · Business Intelligence & Pengembangan Web</span>
           </h1>
           <p className="hero-description">
-            Mengubah data menjadi cerita yang mudah dipahami. Saya membangun dashboard analitik dan aplikasi web untuk mengeksplorasi masalah, menemukan pola, dan mendukung keputusan bisnis.
+            Saya merancang dashboard analitik dan aplikasi web yang membantu menjelaskan masalah, mengeksplorasi data, dan menyajikan informasi dengan lebih jelas.
           </p>
           <div className="hero-actions">
             <button className="button button-light" onClick={() => navigateToPage("karya")}>Lihat proyek <ArrowDownRight size={17} /></button>
             <button className="text-link" onClick={() => navigateToPage("kontak")}>Hubungi saya <ArrowUpRight size={16} /></button>
-            <button type="button" className="cv-pending" disabled title="CV akan ditambahkan setelah tersedia">CV segera tersedia</button>
           </div>
           <div className="hero-meta">
             <span className="hero-focus-label">FOKUS UTAMA</span>
@@ -1739,9 +1739,9 @@ export default function Home() {
 
       <section className="intro-strip" aria-label="Ringkasan">
         <div className="section-wrap intro-inner">
-          <div className="dashboard-stat"><strong>05</strong><span>PROYEK PORTOFOLIO</span></div>
+          <div className="dashboard-stat"><strong>{String(projects.length).padStart(2, "0")}</strong><span>PROYEK</span></div>
           <div className="dashboard-stat"><strong>{String(skills.length).padStart(2, "0")}</strong><span>BAHASA & TOOLS</span></div>
-          <div className="dashboard-stat"><strong>05</strong><span>PENGALAMAN ORGANISASI</span></div>
+          <div className="dashboard-stat"><strong>{String(experiences.length).padStart(2, "0")}</strong><span>PENGALAMAN ORGANISASI</span></div>
         </div>
       </section>
 
@@ -1753,7 +1753,7 @@ export default function Home() {
               <h2>Karya pilihan<span className="muted-period">.</span></h2>
               <p className="section-lead">Dari pertanyaan bisnis ke eksplorasi data. Jelajahi dua proyek analitik unggulan, dilanjutkan aplikasi dan prototipe web.</p>
             </div>
-            <span className="work-count">2025 sampai 2026<br />05 PROYEK</span>
+            <span className="work-count">2025 sampai 2026<br />{String(projects.length).padStart(2, "0")} PROYEK</span>
           </>
         </Reveal>
         <div className="filter-row" role="group" aria-label="Filter kategori karya">
@@ -1778,19 +1778,15 @@ export default function Home() {
         <p className="project-filter-status" role="status" aria-live="polite">{visibleProjects.length} proyek ditampilkan · {activeFilter}</p>
         <motion.div layout={!shouldReduceMotion} className="project-grid">
           <AnimatePresence mode="popLayout">
-            {visibleProjects.map((project, index) => (
+            {visibleProjects.map((project) => (
               <motion.article
                 className={`project-card${biStories[project.visual] ? " project-card-bi" : ""}${projectScreens[project.visual] ? " project-card-with-screen" : ""}${expandedProject?.name === project.name ? " project-card-expanded" : ""}`}
                 key={project.name}
                 layout={!shouldReduceMotion}
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                whileHover={shouldReduceMotion || expandedProject?.name === project.name ? undefined : {
-                  y: -7,
-                  rotateX: 2,
-                  rotateY: index % 2 === 0 ? -2 : 2,
-                }}
-                whileTap={shouldReduceMotion ? undefined : { scale: 0.985, rotateX: 1.5, rotateY: -1.5 }}
+                whileHover={shouldReduceMotion || expandedProject?.name === project.name ? undefined : { y: -2 }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.995 }}
                 data-card-spotlight
                 onPointerMove={updateCardSpotlight}
                 viewport={{ once: true, amount: 0.15 }}
@@ -1903,23 +1899,16 @@ export default function Home() {
                   opacity: 0,
                   x: index % 2 === 0 ? -32 : 32,
                   y: 22,
-                  rotateY: index % 2 === 0 ? -9 : 9,
                   scale: 0.96,
                 }}
                 whileInView={shouldReduceMotion ? undefined : {
                   opacity: 1,
                   x: 0,
                   y: 0,
-                  rotateY: 0,
                   scale: 1,
                 }}
-                whileHover={shouldReduceMotion ? undefined : {
-                  y: -6,
-                  rotateX: 2,
-                  rotateY: index % 2 === 0 ? 1.5 : -1.5,
-                  z: 12,
-                }}
-                whileTap={shouldReduceMotion ? undefined : { scale: 0.985 }}
+                whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.995 }}
                 data-card-spotlight
                 onPointerMove={updateCardSpotlight}
                 viewport={{ once: true, amount: 0.18 }}
@@ -1984,11 +1973,10 @@ export default function Home() {
             <span>YANCE<br />PORTFOLIO</span>
           </motion.div>
           <Reveal className="about-content" delay={0.1}>
-            <span className="eyebrow section-eyebrow">04 / TENTANG SAYA</span>
+              <span className="eyebrow section-eyebrow">04 / PROFIL</span>
             <h2>Halo, saya Yance.</h2>
             <p>
-              Saya tertarik mengembangkan aplikasi dan sistem digital yang bermanfaat.
-              Saya senang belajar melalui eksplorasi teknologi, desain, dan kolaborasi.
+              Saya mahasiswa Sistem Informasi dengan minat pada Business Intelligence dan pengembangan produk digital. Saya menggabungkan analisis data, perancangan antarmuka, dan pengembangan aplikasi dalam proyek akademik maupun mandiri.
             </p>
             <div className="about-points">
               <span><Check size={15} /> Fokus: web dan aplikasi mobile</span>
@@ -1997,13 +1985,25 @@ export default function Home() {
             </div>
           </Reveal>
         </div>
+        <section className="achievement-feature" aria-labelledby="achievement-title">
+          <div className="achievement-copy">
+            <span className="eyebrow section-eyebrow"><Award size={15} /> PENCAPAIAN UNGGULAN</span>
+            <h3 id="achievement-title">Juara 1 Business Plan tingkat nasional</h3>
+            <p>Youth Economics Science Competition 2026 (YES-C 2026), diselenggarakan Himpunan Mahasiswa Departemen Ilmu Ekonomi, Fakultas Ekonomi dan Bisnis, Universitas Negeri Padang.</p>
+            <span className="achievement-meta">3–8 November 2026 <i aria-hidden="true">·</i> Tingkat nasional</span>
+            <a href="/sertifikat-yes-c-2026.jpg" target="_blank" rel="noopener noreferrer" className="achievement-link">Lihat sertifikat <ArrowUpRight size={15} /></a>
+          </div>
+          <a className="achievement-image-link" href="/sertifikat-yes-c-2026.jpg" target="_blank" rel="noopener noreferrer" aria-label="Buka sertifikat YES-C 2026 ukuran penuh">
+            <Image src="/sertifikat-yes-c-2026.jpg" alt="Sertifikat Juara 1 Lomba Business Plan tingkat nasional pada Youth Economics Science Competition 2026" width={1755} height={1241} sizes="(max-width: 760px) 100vw, 42vw" />
+          </a>
+        </section>
         <div className="about-facts">
           <motion.article
             className="about-fact"
             initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
             whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-            whileHover={shouldReduceMotion ? undefined : { x: 5, y: -4, rotateY: -3, rotateX: 2 }}
-            whileTap={shouldReduceMotion ? undefined : { scale: 0.99, rotateX: 1.5 }}
+            whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.995 }}
             data-card-spotlight
             onPointerMove={updateCardSpotlight}
             viewport={{ once: true, amount: 0.35 }}
@@ -2017,8 +2017,8 @@ export default function Home() {
             className="about-fact"
             initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
             whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-            whileHover={shouldReduceMotion ? undefined : { x: 5, y: -4, rotateY: -3, rotateX: 2 }}
-            whileTap={shouldReduceMotion ? undefined : { scale: 0.99, rotateX: 1.5 }}
+            whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.995 }}
             data-card-spotlight
             onPointerMove={updateCardSpotlight}
             viewport={{ once: true, amount: 0.35 }}
@@ -2032,8 +2032,8 @@ export default function Home() {
             className="about-fact"
             initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
             whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-            whileHover={shouldReduceMotion ? undefined : { x: 5, y: -4, rotateY: -3, rotateX: 2 }}
-            whileTap={shouldReduceMotion ? undefined : { scale: 0.99, rotateX: 1.5 }}
+            whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.995 }}
             data-card-spotlight
             onPointerMove={updateCardSpotlight}
             viewport={{ once: true, amount: 0.35 }}
@@ -2116,7 +2116,7 @@ export default function Home() {
             className="contact-copy"
             initial={shouldReduceMotion ? false : { opacity: 0, x: -18 }}
             whileInView={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }}
-            whileHover={shouldReduceMotion ? undefined : { rotateY: -2, z: 8 }}
+            whileHover={shouldReduceMotion ? undefined : { y: -2 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.45, delay: shouldReduceMotion ? 0 : 0.16 }}
           >

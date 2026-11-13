@@ -23,7 +23,7 @@ export const experiences: Experience[] = [
     period: "2026",
     initials: "KI",
     description:
-      "Dokumentasi kegiatan pengembangan internal PIT di KBMDSI bersama rekan tim. Foto menunjukkan kebersamaan anggota PIT dalam kegiatan internal. Rincian agenda dan kontribusi spesifik belum dicantumkan.",
+      "Kegiatan pengembangan internal PIT bersama anggota KBMDSI. Dokumentasi menampilkan kebersamaan tim dalam kegiatan internal.",
     images: [
       {
         src: "/pengembangan-internal-pit.png",
@@ -46,7 +46,7 @@ export const experiences: Experience[] = [
     period: "",
     initials: "MB",
     description:
-      "Pengalaman sebagai Wakil Koordinator di MMD Brawijaya. Informasi mengenai kegiatan yang dikoordinasikan, periode, dan kontribusi spesifik belum dicantumkan.",
+      "Berperan sebagai Wakil Koordinator pada MMD Brawijaya.",
   },
   {
     slug: "ketua-divisi-keamanan",
@@ -55,7 +55,7 @@ export const experiences: Experience[] = [
     period: "2025",
     initials: "SS",
     description:
-      "Dokumentasi kegiatan Synergy of Symphony bersama KBMDSI dalam peran Ketua Divisi Keamanan. Foto memperlihatkan keterlibatan pada kegiatan tersebut; rincian tugas dan hasil spesifik belum dicantumkan.",
+      "Menjabat Ketua Divisi Keamanan pada kegiatan Synergy of Symphony bersama KBMDSI.",
     images: [
       {
         src: "/ketua-divisi-keamanan.png",
@@ -78,7 +78,7 @@ export const experiences: Experience[] = [
     period: "2025",
     initials: "FO",
     description:
-      "Pengalaman sebagai Kepala Hubungan Masyarakat di FORTERY, KBMDSI. Rincian kegiatan komunikasi, publikasi, dan kontribusi spesifik belum dicantumkan.",
+      "Menjabat Kepala Hubungan Masyarakat FORTERY di KBMDSI.",
   },
   {
     slug: "staff-pengembangan-sumber-daya-mahasiswa",
@@ -87,7 +87,7 @@ export const experiences: Experience[] = [
     period: "2025",
     initials: "SD",
     description:
-      "Pengalaman sebagai Staff Pengembangan Sumber Daya Mahasiswa di KBMDSI. Rincian program kegiatan dan kontribusi spesifik belum dicantumkan.",
+      "Menjadi staf Pengembangan Sumber Daya Mahasiswa di KBMDSI.",
   },
 ];
 
