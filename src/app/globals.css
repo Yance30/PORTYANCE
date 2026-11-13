@@ -2254,6 +2254,20 @@ h1, h2 {
 .project-card, .leadership-card, .about-fact, .skill-card, .contact-form {
   box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
 }
+.work-section.portfolio-page .project-grid { align-items: stretch; }
+.work-section.portfolio-page .project-card:not(.project-card-expanded) {
+  display: flex;
+  flex-direction: column;
+}
+.work-section.portfolio-page .project-card:not(.project-card-expanded) > .project-preview {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  min-height: 0;
+  flex: none;
+}
+.work-section.portfolio-page .project-card:not(.project-card-expanded) > .project-info {
+  flex: 1;
+}
 .project-card:hover, .leadership-card:hover, .about-fact:hover, .skill-card:hover {
   box-shadow: 0 12px 28px rgba(0, 0, 0, .18);
 }
