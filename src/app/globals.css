@@ -2270,10 +2270,8 @@ h1, h2 {
 }
 .work-section.portfolio-page .project-card:not(.project-card-expanded) > .project-info {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 18px 8px 8px;
+  display: block;
+  padding: 20px 8px 12px;
 }
 .work-section.portfolio-page .project-card:not(.project-card-expanded) > .project-info > div:first-child {
   width: 100%;
@@ -2288,15 +2286,15 @@ h1, h2 {
   margin-block: 18px;
 }
 .work-section.portfolio-page .project-card:not(.project-card-expanded) .project-stack {
-  margin-top: 18px;
-  gap: 8px;
-}
-.work-section.portfolio-page .project-card:not(.project-card-expanded) .project-links {
-  margin-top: 16px;
+  margin-top: 22px;
   gap: 10px;
 }
+.work-section.portfolio-page .project-card:not(.project-card-expanded) .project-links {
+  margin-top: 18px;
+  gap: 12px;
+}
 .work-section.portfolio-page .project-card:not(.project-card-expanded) .project-focus-trigger {
-  margin-top: 16px;
+  margin-top: 18px;
 }
 .work-section.portfolio-page .project-card:not(.project-card-expanded) .project-meta {
   min-width: 0;
@@ -2304,6 +2302,7 @@ h1, h2 {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  margin-top: 20px;
   padding-top: 14px;
   border-top: 1px solid rgba(245,241,233,.1);
   text-align: left;
